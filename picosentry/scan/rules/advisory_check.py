@@ -429,7 +429,15 @@ def _extract_npm_imports(text: str) -> set[str]:
 
 def _package_in_imports(pkg_name: str, ecosystem: str, imports: set[str]) -> bool:
     if ecosystem == "pypi":
-        return pkg_name.replace("-", "_").replace(".", "_").lower() in imports
+        normalized = pkg_name.replace("-", "_").replace(".", "_").lower()
+        if normalized in imports:
+            return True
+        # Dotted PyPI packages (ruamel.yaml, python-dateutil) import under
+        # their top-level module (ruamel, dateutil), which differs from the
+        # fully-normalized package name. Also check the first segment so
+        # `ruamel.yaml` matches the extracted import `ruamel` (WO8-004).
+        first_segment = normalized.split("_", 1)[0]
+        return first_segment in imports
     if ecosystem == "npm":
         if pkg_name.startswith("@"):
             return pkg_name.lower() in imports
