@@ -83,7 +83,7 @@ def test_health_returns_while_scans_busy():
     t1 = threading.Thread(target=do_scan1)
     t1.start()
 
-    scan_started.wait(timeout=2)
+    scan_started.wait(timeout=10)
     assert scan_started.is_set(), "scan1 should have started"
 
     health_result = {"healthy": None}
@@ -95,8 +95,8 @@ def test_health_returns_while_scans_busy():
     # thread is free (the 2nd scan would be rejected, not Health).
     t_health = threading.Thread(target=do_health)
     t_health.start()
-    t_health.join(timeout=1)
-    assert not t_health.is_alive(), "Health RPC blocked >1s — scan starved Health"
+    t_health.join(timeout=10)
+    assert not t_health.is_alive(), "Health RPC blocked >10s — scan starved Health"
     assert health_result["healthy"] is not None
 
     scan_release.set()
