@@ -403,10 +403,10 @@ class IntelligenceEngine:
         time_window_hours = int(time_window_hours)
         if db.dialect.backend == "postgres":
             time_expr = (
-                f"i1.created_at BETWEEN i2.created_at - INTERVAL '{time_window_hours} hours' "
-                f"AND i2.created_at + INTERVAL '{time_window_hours} hours'"
+                "i1.created_at BETWEEN i2.created_at - make_interval(hours => %s) "
+                "AND i2.created_at + make_interval(hours => %s)"
             )
-            params: tuple = ()
+            params: tuple = (time_window_hours, time_window_hours)
         else:
             time_expr = "ABS(julianday(i1.created_at) - julianday(i2.created_at)) * 24 <= ?"
             params = (time_window_hours,)
