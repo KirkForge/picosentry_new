@@ -127,3 +127,72 @@ class TestValuesConsistency:
     def test_values_has_podDisruptionBudget(self):
         content = (CHART_DIR / "values.yaml").read_text()
         assert "podDisruptionBudget:" in content
+
+
+class TestPersistenceMountPath:
+    """WO8.0.0-101: persistence.mountPath is parameterized so LOG_DIR/BACKUP_DIR
+    env vars can point at the PVC mount."""
+
+    def test_values_has_mountPath(self):
+        content = (CHART_DIR / "values.yaml").read_text()
+        assert "mountPath:" in content
+
+    def test_deployment_uses_mountPath_value(self):
+        content = (TEMPLATES_DIR / "deployment.yaml").read_text()
+        assert ".Values.persistence.mountPath" in content
+
+
+class TestLogBackupDirEnvWiring:
+    """WO8.0.0-101: deployment wires PICOSHOGUN_LOG_DIR / PICOSHOGUN_BACKUP_DIR
+    to the PVC mount so logs/backups survive pod restarts on a read-only root FS."""
+
+    def test_deployment_has_log_dir_env(self):
+        content = (TEMPLATES_DIR / "deployment.yaml").read_text()
+        assert "PICOSHOGUN_LOG_DIR" in content
+
+    def test_deployment_has_backup_dir_env(self):
+        content = (TEMPLATES_DIR / "deployment.yaml").read_text()
+        assert "PICOSHOGUN_BACKUP_DIR" in content
+
+    def test_env_vars_gated_on_persistence(self):
+        content = (TEMPLATES_DIR / "deployment.yaml").read_text()
+        # The LOG_DIR/BACKUP_DIR block must be inside the persistence.enabled gate
+        # so a postgres-backend deploy (no PVC) doesn't point at a missing mount.
+        assert ".Values.persistence.mountPath" in content
+        assert "PICOSHOGUN_LOG_DIR" in content
+        assert "PICOSHOGUN_BACKUP_DIR" in content
+
+
+class TestPathUserAlignment:
+    """WO8.0.0-102: PVC mount path, DB path, and Docker USER home must agree so
+    ~ and $HOME resolve to the PVC mount (plugin_manager.DEFAULT_USER_PLUGIN_DIR
+    uses Path('~/.picosentry/plugins').expanduser())."""
+
+    def test_mount_path_matches_docker_user_home(self):
+        values = (CHART_DIR / "values.yaml").read_text()
+        # The mountPath must be under /home/picosentry (the Dockerfile USER home),
+        # not /home/picodome (the old mismatched path).
+        assert "/home/picosentry/.picosentry" in values
+        assert "/home/picodome" not in values
+
+    def test_db_path_under_mount_path(self):
+        values = (CHART_DIR / "values.yaml").read_text()
+        # DB path must be under the same root as the PVC mount path.
+        assert "/home/picosentry/.picosentry/picoshogun.db" in values
+
+    def test_dockerfile_user_uid_matches_helm_runAsUser(self):
+        dockerfile = (REPO_ROOT / "Dockerfile").read_text()
+        values = (CHART_DIR / "values.yaml").read_text()
+        # The Dockerfile must create the picosentry user with UID 1000 to match
+        # the helm chart's securityContext.runAsUser: 1000.
+        assert "-u 1000" in dockerfile
+        assert "-g 1000" in dockerfile
+        assert "runAsUser: 1000" in values
+
+    def test_dockerfile_user_home_matches_mount_path(self):
+        dockerfile = (REPO_ROOT / "Dockerfile").read_text()
+        values = (CHART_DIR / "values.yaml").read_text()
+        # The Dockerfile USER home (/home/picosentry) must be the parent of the
+        # PVC mount path (/home/picosentry/.picosentry).
+        assert "-d /home/picosentry" in dockerfile
+        assert "/home/picosentry/.picosentry" in values
