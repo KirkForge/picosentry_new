@@ -301,7 +301,7 @@ class JobScheduler:
             if match:
                 val = int(match.group(1))
                 unit = match.group(2)
-                now = datetime.now()
+                now = _utcnow()
                 if unit == "minute":
                     return now + timedelta(minutes=val)
                 if unit == "hour":
@@ -311,7 +311,7 @@ class JobScheduler:
             return None
 
         try:
-            itr = croniter(cron_expression, datetime.now())
+            itr = croniter(cron_expression, _utcnow())
             return itr.get_next(datetime)
         except (ValueError, TypeError, KeyError):
             logger.warning("Invalid cron expression '%s'; cannot compute next run", cron_expression)
@@ -483,7 +483,7 @@ class JobScheduler:
                 status = "completed"
                 _output = f"Cleaned up {expired} expired API keys, rotated logs, purged audit entries"
 
-            now = datetime.now()
+            now = _utcnow()
             db.execute_insert(
                 """
                 UPDATE scheduled_jobs
@@ -501,7 +501,7 @@ class JobScheduler:
 
         except _JOB_EXECUTE_ERRORS:
             logger.exception("Job %s failed", name)
-            now = datetime.now()
+            now = _utcnow()
             db.execute_insert(
                 """
                 UPDATE scheduled_jobs
@@ -537,7 +537,7 @@ class JobScheduler:
             # backups, purges, probes).
             self._cancel_queued(job_id)
             job.next_run = next_run
-            delay = (next_run - datetime.now()).total_seconds()
+            delay = (next_run - _utcnow()).total_seconds()
             if delay > 0:
                 event = self.scheduler.enter(delay, 1, self._dispatch_job, argument=(job_id,))
                 self._queued[job_id] = [event]

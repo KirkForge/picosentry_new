@@ -2,6 +2,7 @@ import json
 import logging
 import re
 import threading
+import time
 from collections import defaultdict
 from typing import Any, ClassVar
 
@@ -38,6 +39,8 @@ class IntelligenceEngine:
         self._lock = threading.Lock()
         self.patterns = defaultdict(list)
         self.threat_scores = defaultdict(float)
+        self._last_decay_time = time.monotonic()
+        self._decay_interval = 60.0
         self._load_historical()
 
     def _load_historical(self):
@@ -352,8 +355,14 @@ class IntelligenceEngine:
     def _update_threat_score(self, project_id: str, severity: str, data: dict):
         weight = self._severity_weight(severity)
 
-        for pid in self.threat_scores:
-            self.threat_scores[pid] *= 0.95
+        # Amortize decay: only iterate all projects when enough time has
+        # passed, not on every ingest. O(N) per ingest -> O(N) per
+        # _decay_interval. Between decays, raw scores accumulate.
+        now = time.monotonic()
+        if now - self._last_decay_time >= self._decay_interval:
+            self._last_decay_time = now
+            for pid in self.threat_scores:
+                self.threat_scores[pid] *= 0.95
 
         match_count = data.get("data", {}).get("match_count", 1)
         self.threat_scores[project_id] += weight * match_count

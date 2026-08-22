@@ -128,5 +128,16 @@ async def delete_scheduler_job(
 
 def _assert_job_in_org(job_id: int, org_id: int) -> None:
     job = scheduler.jobs.get(job_id)
-    if job is None or job.org_id != org_id:
+    if job is not None:
+        if job.org_id != org_id:
+            raise HTTPException(status_code=404, detail="Scheduler job not found")
+        return
+    # Job not in this worker's in-memory dict (cross-worker, pre-converge).
+    # Fall back to the shared DB so CRUD on non-leader workers does not 404.
+    from picosentry.serve.services.scheduler import db
+
+    row = db.execute_one("SELECT org_id FROM scheduled_jobs WHERE id = ?", (job_id,))
+    if row is None or row["org_id"] != org_id:
         raise HTTPException(status_code=404, detail="Scheduler job not found")
+    # Reload into memory so subsequent operations on this worker skip the DB.
+    scheduler._load_jobs()
