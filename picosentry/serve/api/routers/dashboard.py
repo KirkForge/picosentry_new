@@ -36,7 +36,9 @@ async def dashboard_summary(
             "FROM alerts WHERE org_id = ? ORDER BY created_at DESC LIMIT 10",
             (org["id"],),
         )
-        pending_alerts = db.execute_one("SELECT COUNT(*) as c FROM alerts WHERE sent = 0 AND org_id = ?", (org["id"],))
+        pending_alerts = db.execute_one(
+            "SELECT COUNT(*) as c FROM alerts WHERE acknowledged = 0 AND org_id = ?", (org["id"],)
+        )
         return status, health, recent_projects, recent_intel, recent_alerts, pending_alerts
 
     status, health, recent_projects, recent_intel, recent_alerts, pending_alerts = await asyncio.to_thread(_load)
