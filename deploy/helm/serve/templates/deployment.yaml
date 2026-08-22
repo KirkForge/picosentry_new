@@ -120,6 +120,12 @@ spec:
             - name: PICOSHOGUN_DATABASE_PATH
               value: {{ .Values.database.path | quote }}
             {{- end }}
+            {{- if .Values.persistence.enabled }}
+            - name: PICOSHOGUN_LOG_DIR
+              value: {{ printf "%s/logs" .Values.persistence.mountPath | quote }}
+            - name: PICOSHOGUN_BACKUP_DIR
+              value: {{ printf "%s/backups" .Values.persistence.mountPath | quote }}
+            {{- end }}
             {{- if .Values.ratelimit.enabled }}
             {{- if ne .Values.ratelimit.backend "memory" }}
             - name: PICOSHOGUN_RATE_LIMIT_BACKEND
@@ -135,7 +141,7 @@ spec:
           volumeMounts:
             {{- if .Values.persistence.enabled }}
             - name: data
-              mountPath: /home/picodome/.picosentry
+              mountPath: {{ .Values.persistence.mountPath | quote }}
             {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

@@ -22,7 +22,14 @@ class LogManager:
         self._ensure_dir()
 
     def _ensure_dir(self):
-        self.log_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            self.log_dir.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            # Read-only root filesystem (readOnlyRootFilesystem: true in the
+            # serve helm chart): degrading to console-only logging is the
+            # safe failure mode. Operator sets PICOSHOGUN_LOG_DIR to a PVC
+            # mount to re-enable file logging.
+            logger.warning("Log dir %s not writable: %s — file logging disabled", self.log_dir, exc)
 
     def rotate(self, log_file: str | None = None) -> str | None:
         if log_file:

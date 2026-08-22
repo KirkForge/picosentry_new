@@ -127,3 +127,37 @@ class TestValuesConsistency:
     def test_values_has_podDisruptionBudget(self):
         content = (CHART_DIR / "values.yaml").read_text()
         assert "podDisruptionBudget:" in content
+
+
+class TestPersistenceMountPath:
+    """WO8.0.0-101: persistence.mountPath is parameterized so LOG_DIR/BACKUP_DIR
+    env vars can point at the PVC mount."""
+
+    def test_values_has_mountPath(self):
+        content = (CHART_DIR / "values.yaml").read_text()
+        assert "mountPath:" in content
+
+    def test_deployment_uses_mountPath_value(self):
+        content = (TEMPLATES_DIR / "deployment.yaml").read_text()
+        assert ".Values.persistence.mountPath" in content
+
+
+class TestLogBackupDirEnvWiring:
+    """WO8.0.0-101: deployment wires PICOSHOGUN_LOG_DIR / PICOSHOGUN_BACKUP_DIR
+    to the PVC mount so logs/backups survive pod restarts on a read-only root FS."""
+
+    def test_deployment_has_log_dir_env(self):
+        content = (TEMPLATES_DIR / "deployment.yaml").read_text()
+        assert "PICOSHOGUN_LOG_DIR" in content
+
+    def test_deployment_has_backup_dir_env(self):
+        content = (TEMPLATES_DIR / "deployment.yaml").read_text()
+        assert "PICOSHOGUN_BACKUP_DIR" in content
+
+    def test_env_vars_gated_on_persistence(self):
+        content = (TEMPLATES_DIR / "deployment.yaml").read_text()
+        # The LOG_DIR/BACKUP_DIR block must be inside the persistence.enabled gate
+        # so a postgres-backend deploy (no PVC) doesn't point at a missing mount.
+        assert ".Values.persistence.enabled" in content
+        assert "PICOSHOGUN_LOG_DIR" in content
+        assert "PICOSHOGUN_BACKUP_DIR" in content

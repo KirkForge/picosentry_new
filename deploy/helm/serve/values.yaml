@@ -72,6 +72,9 @@ persistence:
   enabled: true
   size: 5Gi
   storageClass: ""
+  # PVC mount path inside the container. log_dir and backup_dir env vars
+  # (PICOSHOGUN_LOG_DIR / PICOSHOGUN_BACKUP_DIR) are derived from this path.
+  mountPath: /home/picodome/.picosentry
 
 cors:
   # Allowed origins for CORS headers (default: * for all — narrow in production)

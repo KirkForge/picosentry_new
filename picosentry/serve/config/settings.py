@@ -55,7 +55,7 @@ class DatabaseConfig:
     backend: str = field(default_factory=lambda: _env("DATABASE_BACKEND", "sqlite"))
     url: str = field(default_factory=lambda: _env("DATABASE_URL", ""))
     path: Path = field(default_factory=lambda: Path(_env("DATABASE_PATH", str(BASE_DIR / "picoshogun.db"))))
-    backup_dir: Path = BASE_DIR / "backups"
+    backup_dir: Path = field(default_factory=lambda: _env_path("BACKUP_DIR") or (BASE_DIR / "backups"))
     max_connections: int = 10
     timeout: int = 30
     backup_retention_days: int = 30
@@ -179,7 +179,7 @@ class LoggingConfig:
     format: str = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
     max_bytes: int = 10_000_000  # 10MB
     backup_count: int = 10
-    log_dir: Path = BASE_DIR / "logs"
+    log_dir: Path = field(default_factory=lambda: _env_path("LOG_DIR") or (BASE_DIR / "logs"))
     structured: bool = field(default_factory=lambda: _env_bool("LOG_STRUCTURED", "true"))
 
 

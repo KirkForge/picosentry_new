@@ -69,7 +69,13 @@ def configure_logging(
     if log_dir:
         from logging.handlers import RotatingFileHandler
 
-        log_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            log_dir.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            # Read-only root filesystem: degrade to console-only logging
+            # rather than crashing at import/boot time.
+            logging.getLogger("picoshogun.config").warning("Log dir %s not writable — file logging disabled", log_dir)
+            return
         file_handler = RotatingFileHandler(
             log_dir / "picoshogun.log",
             maxBytes=max_bytes,
