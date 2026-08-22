@@ -271,24 +271,38 @@ class CorpusGovernance:
 
     def _load_state(self) -> None:
         state_path = self._state_path()
-        if not state_path.is_file():
-            return
+        if state_path.is_file():
+            try:
+                data = json.loads(state_path.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                logger.warning("Failed to load governance state from %s", state_path)
+                return
 
-        try:
-            data = json.loads(state_path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
-            logger.warning("Failed to load governance state from %s", state_path)
-            return
+            sources_data = data.get("sources", {})
 
-        sources_data = data.get("sources", {})
+            items = sources_data.values() if isinstance(sources_data, dict) else sources_data
+            for s in items:
+                src = CorpusSource.from_dict(s)
+                self._sources[src.name] = src
 
-        items = sources_data.values() if isinstance(sources_data, dict) else sources_data
-        for s in items:
-            src = CorpusSource.from_dict(s)
-            self._sources[src.name] = src
+            for r in data.get("release_notes", []):
+                self._release_notes.append(CorpusReleaseNotes.from_dict(r))
 
-        for r in data.get("release_notes", []):
-            self._release_notes.append(CorpusReleaseNotes.from_dict(r))
+        # Load false-positive reports from disk so they survive restarts
+        # (WO8-005): report_false_positive writes to _fp_dir()/*.json, but
+        # _load_state previously ignored those files, so list/triage saw an
+        # empty dict after a restart.
+        fp_dir = self.governance_dir / "false_positives"
+        if fp_dir.is_dir():
+            for fp_path in sorted(fp_dir.glob("*.json")):
+                try:
+                    fp_data = json.loads(fp_path.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, OSError):
+                    continue
+                if isinstance(fp_data, dict):
+                    report = FalsePositiveReport.from_dict(fp_data)
+                    report_id = fp_path.stem
+                    self._fp_reports[report_id] = report
 
     def _save_state(self) -> None:
         state_path = self._state_path()

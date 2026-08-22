@@ -95,6 +95,9 @@ class ScanCache:
         self.max_entries = max_entries
         self.max_size_mb = max_size_mb
         self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self._write_count = 0  # ponytail: gate _enforce_caps every N writes — O(N²)→O(N) (WO8-002, like OSV WO7-031)
+
+    _ENFORCE_CAPS_EVERY = 50
 
     @staticmethod
     def from_env() -> ScanCache:
@@ -241,7 +244,9 @@ class ScanCache:
 
         logger.debug("Cached scan result: %s", key[:8])
 
-        self._enforce_caps()
+        self._write_count += 1
+        if self._write_count % self._ENFORCE_CAPS_EVERY == 0:
+            self._enforce_caps()
 
     def invalidate(
         self, lockfile_hash: str = "", corpus_hash: str = "", rule_version: str = "", config_digest: str = ""

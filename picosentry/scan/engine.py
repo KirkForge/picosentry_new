@@ -452,9 +452,22 @@ class ScanEngine:
         packages_scanned = count_installed_packages(target_path)
 
         package_intel: dict[str, PackageIntel] = {}
+        # Filter SKIP_DIRS (node_modules/.venv/.git) from the package.json
+        # rglob (WO8-010): the previous unconditional rglob walked every
+        # vendored dep's package.json, reading+json.loads-ing each before any
+        # rule ran — seconds of overhead for a project with 1000+ npm deps.
+        # The advisory collector already walks node_modules via
+        # iter_node_modules, so this pre-computation duplicated that work.
+        # Computation stays unconditional because ScanResult.package_intel
+        # is part of the result contract (test_package_intel_wiring); the
+        # SKIP_DIRS filter removes the O(vendored deps) cost.
+        from .workspace import SKIP_DIRS
+
         try:
             _pkg_intel_analyzer = PackageIntelligence()
             for _pkg_json_path in sorted(target_path.rglob("package.json")):
+                if any(part in SKIP_DIRS for part in _pkg_json_path.parts):
+                    continue
                 try:
                     _pkg_data = json.loads(_pkg_json_path.read_text(encoding="utf-8", errors="replace"))
                     if isinstance(_pkg_data, dict):

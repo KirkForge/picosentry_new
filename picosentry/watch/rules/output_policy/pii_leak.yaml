@@ -21,8 +21,8 @@
 - id: out_pii_phone
   category: pii_leak
   weight: 0.75
-  pattern: "\\b(?:\\+?1[-.]\\s?)?\\(?\\d{3}\\)?[-.]?\\d{3}[-.]?\\d{4}\\b|\\b\\+?(?:\\d{1,3}[-.]\\s?)?\\(?\\d{1,4}\\)?[-.]?\\d{3,4}[-.]?\\d{3,4}\\b"
-  description: "Phone number pattern (US + international)"
+  pattern: "\\+\\d{1,3}[-.\\s]?\\(?\\d{1,4}\\)?[-.\\s]?\\d{3,4}[-.\\s]?\\d{3,4}|\\(\\d{3}\\)[-.\\s]?\\d{3}[-.\\s]?\\d{4}|tel:\\+?[0-9][0-9.\\s-]+"
+  description: "Phone number pattern — requires + country code, parens, or tel: prefix (WO8-007)"
 
 - id: out_pii_api_key
   category: pii_leak
