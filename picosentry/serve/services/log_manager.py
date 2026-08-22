@@ -2,7 +2,7 @@ import gzip
 import logging
 import shutil
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 logger = logging.getLogger("picoshogun.LogManager")
@@ -84,12 +84,12 @@ class LogManager:
             return 0
 
         with self._lock:
-            cutoff = datetime.now() - timedelta(days=self.retention_days)
+            cutoff = datetime.now(timezone.utc) - timedelta(days=self.retention_days)
             removed = 0
 
             for log_file in self._get_log_files():
                 if log_file.suffix == ".gz":
-                    mtime = datetime.fromtimestamp(log_file.stat().st_mtime)
+                    mtime = datetime.fromtimestamp(log_file.stat().st_mtime, tz=timezone.utc)
                     if mtime < cutoff:
                         log_file.unlink()
                         removed += 1
@@ -119,7 +119,7 @@ class LogManager:
                     {
                         "name": f.name,
                         "size": f.stat().st_size,
-                        "modified": datetime.fromtimestamp(f.stat().st_mtime).isoformat(),
+                        "modified": datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc).isoformat(),
                     }
                     for f in sorted(files, key=lambda p: p.stat().st_mtime, reverse=True)
                 ],
