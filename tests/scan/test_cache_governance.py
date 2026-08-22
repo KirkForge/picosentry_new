@@ -154,11 +154,20 @@ class TestCacheCaps(unittest.TestCase):
         reset_audit_sink()
 
     def test_max_entries_cap(self):
-        """Cache should evict oldest entries when max_entries is exceeded."""
+        """Cache should evict oldest entries when max_entries is exceeded.
+
+        _enforce_caps is amortized to every _ENFORCE_CAPS_EVERY writes (WO8-002),
+        so the cap is eventually-consistent. Trigger it explicitly here to
+        verify the cap itself still evicts oldest entries past the limit.
+        """
         cache = ScanCache(cache_dir=Path(self.tmpdir), ttl=999999, max_entries=3)
         # Add 5 entries; only the newest 3 should remain after eviction
         for i in range(5):
             cache.put(f"lock-{i}", f"corpus-{i}", "v1", {"idx": i})
+
+        # The amortized gate (every N writes) may not have fired for 5 writes,
+        # so enforce explicitly to verify the cap works.
+        cache._enforce_caps()
 
         stats = cache.stats()
         self.assertLessEqual(stats["entries"], 3)
