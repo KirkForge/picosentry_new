@@ -2,18 +2,22 @@
 
 *Tracked. Updated at session close. Head section = current state; below = session history.*
 
-# ═══ CURRENT STATE (2026-08-22, WO7.0.0 COMPLETE — 34/34 DONE; v2.2.0 shipped; main = dev = 8c3a68e2, both green) ═══
+# ═══ CURRENT STATE (2026-08-22, WO8.0.0 SEEDED — 22 WOs open; WO7.0.0 complete; v2.2.0 shipped; main = 8c3a68e2, dev = 5cfd0312) ═══
 
-**WO7.0.0 series fully CLOSED** (34/34 DONE). Three waves of 2 subagents each (P0: 6 WOs, P1: 22 WOs, P2: 6 WOs), 6 worktrees total off `origin/dev`. Zero merge conflicts (disjoint file ownership verified pre-merge each wave). Orchestrator landed 3 riders (org_id threading, health probe lightweight, test fixes for health 503 on CI). Central gate green each wave: P0 5678, P1 5806, P2 **5854 passed / 0 failed / 37 skipped**. ruff/format/mypy clean (747 files, 417 source files). **main = dev = `8c3a68e2`, both green** (P2 push CI run 32587754827, all jobs success: 5-Python matrix 3.10–3.14, PG 15-18, reproducible-build, landlock-real-exec, docker amd64+arm64). WO6.0.0 and WO5.0.0 also fully closed.
+**WO8.0.0 series seeded** (22 WOs: P0×5, P1×10, P2×7) from a two-explorer round (scan+sandbox+watch / serve+core+deploy+firewall). All findings carry verified evidence (live repros or airtight file:line chains). Headline P0s: gRPC Scan orphaned running jobs on failure (001), gRPC Scan inline DoS (008), L4 profiler op-type blind (009), serve helm chart readOnlyRootFilesystem crash (101), serve helm chart path mismatch (102). Suggested batch shape in README.
 
-**Migrations landed this session**: 24 (correlation_chains UNIQUE(org_id, artifact_id)), 25 (alerts `acknowledged` column separate from `sent`).
+**WO7.0.0 series fully CLOSED** (34/34 DONE). Three waves of 2 subagents each (P0: 6 WOs, P1: 22 WOs, P2: 6 WOs), 6 worktrees total off `origin/dev`. Zero merge conflicts (disjoint file ownership verified pre-merge each wave). Orchestrator landed 3 riders (org_id threading, health probe lightweight, test fixes for health 503 on CI). Central gate green each wave: P0 5678, P1 5806, P2 **5854 passed / 0 failed / 37 skipped**. ruff/format/mypy clean (747 files, 417 source files). **main = `8c3a68e2`** (WO7 push CI green at that SHA); **dev = `5cfd0312`** (WO8 seeding commit, docs-only — safe to ff main when convenient).
 
-**Standing context**: green-before-ff rule in AGENTS.md §1.5; WO5 remainders: docker push (tooling-gated, runbook in WO5-014), WO5-029 <1s/MB target (12% landed, full fused pass pending), WO5-031 e2e isolation (core + helm chart landed, 2-worker e2e pending). Next free series: WO8.0.0.
+**Migrations landed in WO7**: 24 (correlation_chains UNIQUE(org_id, artifact_id)), 25 (alerts `acknowledged` column separate from `sent`).
+
+**Standing context**: green-before-ff rule in AGENTS.md §1.5; WO5 remainders: docker push (tooling-gated, runbook in WO5-014), WO5-029 <1s/MB target (12% landed, full fused pass pending), WO5-031 e2e isolation (core + helm chart landed, 2-worker e2e pending). Next free series: WO9.0.0.
 
 **The queue (next session — jump-in order)**:
-1. **WO5 remainders**: docker push (when tooling exists), WO5-029 fused-pass target, WO5-031 e2e isolation
-2. **WO8.0.0 exploration round**: dispatch 6 read-only explorers to seed the next series (scan / sandbox / serve / watch+firewall / core-CLI-CI / cross-cutting)
-3. **Release v2.3.0** when ready (dev ~35 commits ahead of main before the ff; WO7.0.0 is a significant security/correctness wave — warrants a release)
+1. **WO8.0.0 P0 cluster** (5 WOs): sandbox 001/008/009 + deploy 101/102 — security/correctness, do first
+2. **WO8.0.0 P1 wave** (10 WOs): scan+sandbox+watch 002-005/007/010 + serve 103-106
+3. **WO8.0.0 P2 riders** (7 WOs): 006 + 107-112
+4. **WO5 remainders**: docker push (when tooling exists), WO5-029 fused-pass target, WO5-031 e2e isolation
+5. **Release v2.3.0** when ready (WO7.0.0 is a significant security/correctness wave — warrants a release; WO8 P0s should land first)
 
 # ═══ SESSION HISTORY ═══
 

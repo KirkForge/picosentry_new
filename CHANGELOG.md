@@ -2,6 +2,9 @@
 
 All notable changes to PicoSentry will be documented in this file.
 
+## 2026-08-22 - WO8.0.0 series seeded (22 workorders from two-explorer round)
+- docs(workorders): **WO8.0.0 series created** — 22 workorders from a two-explorer read-only round (scan+sandbox+watch / serve+core+deploy+firewall), ~22 verified findings. P0×5, P1×10, P2×7. No code changed. Headline P0s: gRPC Scan orphaned running jobs on failure (001), gRPC Scan inline DoS — blocks Health RPC (008), L4 profiler only emits read/write ops — create/delete/chmod rules dead (009), serve helm chart readOnlyRootFilesystem crash on boot (101), serve helm chart Dockerfile-vs-helm path mismatch (102). Suggested batch shape in README.
+
 ## 2026-08-22 - WO7.0.0 execution wave: 34/34 DONE (6 subagent worktrees across 3 waves)
 - **3-wave parallel execution**: P0 (2 subagents × 3+4 WOs, 2 worktrees), P1 (2 subagents × 11+11 WOs, 2 worktrees), P2 (2 subagents × 3+3 WOs, 2 worktrees). Zero merge conflicts (disjoint file ownership verified pre-merge each wave). Orchestrator landed 3 riders (org_id threading through orchestrator→update_project_stats; health probe lightweight — no full chain verify on /health; test fixes for health 503 on CI runners without sandbox backend). Central gate green each wave: P0 5678, P1 5806, P2 **5854 passed / 0 failed**. ruff/format/mypy clean (747 files, 417 source files). main ff'd to dev `8c3a68e2`, push CI green (5-Python matrix 3.10–3.14, PG 15-18, reproducible-build, landlock-real-exec, docker amd64+arm64).
 - fix(scan): **OSV crates.io drop** — `Advisory.from_osv` now maps `crates.io → cargo` before `_KNOWN_ECOSYSTEMS` check (ALL Rust advisories were silently dropped in connected mode; WO7-001, P0).
