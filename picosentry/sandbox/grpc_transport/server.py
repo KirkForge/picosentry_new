@@ -64,6 +64,10 @@ class PicoDomeGRPCServer:
         # Mirrors PicoDomeHandler._stats_lock: the servicer increments
         # _scan_count under this lock (WO5.0.0-018).
         self._stats_lock = threading.Lock()
+        # WO8.0.0-008: reserve at least 1 RPC thread for Health/GetPolicy/QueryAudit
+        # so concurrent Scan RPCs cannot starve unauthenticated Health checks.
+        # scan_slots limits concurrent Scan RPCs to max_workers - 1 (min 1).
+        self._scan_slots = threading.Semaphore(max(1, max_workers - 1))
         if auth is None:
             from picosentry.sandbox.auth import TokenAuth
 
@@ -109,6 +113,7 @@ class PicoDomeGRPCServer:
             scan_count_ref=self,
             auth=self._auth,
             job_store=self._job_store,
+            scan_slots=self._scan_slots,
         )
 
         try:

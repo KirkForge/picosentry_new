@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import json
 import logging
+import threading
 import time
 import uuid
 from typing import Any
@@ -20,12 +21,14 @@ class PicoDomeServicer:
         scan_count_ref: Any,
         auth: Any | None = None,
         job_store: Any | None = None,
+        scan_slots: threading.Semaphore | None = None,
     ) -> None:
         self._scan_engine = scan_engine
         self._start_time = start_time
         self._scan_count_ref = scan_count_ref
         self._auth = auth
         self._job_store = job_store
+        self._scan_slots = scan_slots
         self._health_cache: tuple[float, list[Any]] | None = None
         self._health_cache_ttl: float = 5.0
 
@@ -99,18 +102,34 @@ class PicoDomeServicer:
                 except Exception:
                     logger.debug("job_store add/update failed for %s", job_id, exc_info=True)
 
-            sandbox_result = self._scan_engine.scan(
-                command=command,
-                policy=policy,
-                timeout=timeout,
-                cwd=cwd,
-                deterministic=False,
-            )
+            if self._scan_slots is not None and not self._scan_slots.acquire(blocking=False):
+                if self._job_store is not None:
+                    with contextlib.suppress(Exception):
+                        self._job_store.update(
+                            job_id,
+                            status="failed",
+                            tenant_id=tenant_id or None,
+                            error="scan queue full",
+                        )
+                self._audit_log("SCAN_ERROR", detail="scan queue full", context=context)
+                return self._reject(context, "RESOURCE_EXHAUSTED", "scan queue full")
 
-            analysis_result = self._scan_engine.analyze(
-                sandbox_result,
-                deterministic=False,
-            )
+            try:
+                sandbox_result = self._scan_engine.scan(
+                    command=command,
+                    policy=policy,
+                    timeout=timeout,
+                    cwd=cwd,
+                    deterministic=False,
+                )
+
+                analysis_result = self._scan_engine.analyze(
+                    sandbox_result,
+                    deterministic=False,
+                )
+            finally:
+                if self._scan_slots is not None:
+                    self._scan_slots.release()
 
             result = {
                 "job_id": job_id,
@@ -376,6 +395,7 @@ class PicoDomeServicer:
             "PERMISSION_DENIED": grpc.StatusCode.PERMISSION_DENIED,
             "INVALID_ARGUMENT": grpc.StatusCode.INVALID_ARGUMENT,
             "NOT_FOUND": grpc.StatusCode.NOT_FOUND,
+            "RESOURCE_EXHAUSTED": grpc.StatusCode.RESOURCE_EXHAUSTED,
         }.get(code_name, grpc.StatusCode.INVALID_ARGUMENT)
         context.abort(code, detail)
         return
