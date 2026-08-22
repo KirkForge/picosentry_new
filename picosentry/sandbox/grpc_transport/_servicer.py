@@ -32,6 +32,8 @@ class PicoDomeServicer:
     def Scan(self, request, context):
         self._audit_log("SCAN_START", detail=f"command={list(request.command)}", context=context)
 
+        job_id: str | None = None
+        tenant_id: str = ""
         try:
             command = list(request.command) if hasattr(request, "command") else []
 
@@ -180,6 +182,17 @@ class PicoDomeServicer:
                 raise
             logger.exception("Scan RPC failed")
             self._audit_log("SCAN_ERROR", detail=type(e).__name__, context=context)
+
+            if self._job_store is not None and job_id is not None:
+                try:
+                    self._job_store.update(
+                        job_id,
+                        status="failed",
+                        tenant_id=tenant_id or None,
+                        error=f"scan_failed: {type(e).__name__}",
+                    )
+                except Exception:
+                    logger.debug("job_store failed-update failed for %s", job_id, exc_info=True)
 
             error_result = {
                 "result_json": json.dumps({"error": "scan_failed"}),
