@@ -452,26 +452,44 @@ class ScanEngine:
         packages_scanned = count_installed_packages(target_path)
 
         package_intel: dict[str, PackageIntel] = {}
-        try:
-            _pkg_intel_analyzer = PackageIntelligence()
-            for _pkg_json_path in sorted(target_path.rglob("package.json")):
-                try:
-                    _pkg_data = json.loads(_pkg_json_path.read_text(encoding="utf-8", errors="replace"))
-                    if isinstance(_pkg_data, dict):
-                        _pkg_name = _pkg_data.get("name", "")
-                        if _pkg_name:
-                            _intel = _pkg_intel_analyzer.analyze(_pkg_data, ecosystem="npm")
-                            if self._intelligence_mode == "connected":
-                                from ._network import fetch_registry_intel
-                                from .package_intel import enrich_registry_intel
+        # Only compute package_intel if at least one selected rule declares it
+        # in its signature (WO8-010): the loop reads+json.loads every
+        # package.json under the target (including node_modules/) before any
+        # rule runs, which is wasted work when no rule consumes it. Most rules
+        # don't accept package_intel — only rules with "package_intel" in
+        # params use it (see _invoke_rule below).
+        _needs_pkg_intel = any(
+            "package_intel" in inspect.signature(self._rules[rid]).parameters for rid in selected_rules
+        )
+        if _needs_pkg_intel:
+            from .workspace import SKIP_DIRS
 
-                                _dl, _first = fetch_registry_intel(_pkg_name, ecosystem="npm")
-                                _intel = enrich_registry_intel(_intel, _dl, _first)
-                            package_intel[_pkg_name] = _intel
-                except (json.JSONDecodeError, OSError):
-                    continue
-        except Exception:
-            logger.debug("Package intel computation skipped", exc_info=True)
+            try:
+                _pkg_intel_analyzer = PackageIntelligence()
+                for _pkg_json_path in sorted(target_path.rglob("package.json")):
+                    # Skip vendored/VCS dirs (node_modules is the big one): the
+                    # advisory collector already walks node_modules via
+                    # iter_node_modules, so this pre-computation duplicated it
+                    # (WO8-010).
+                    if any(part in SKIP_DIRS for part in _pkg_json_path.parts):
+                        continue
+                    try:
+                        _pkg_data = json.loads(_pkg_json_path.read_text(encoding="utf-8", errors="replace"))
+                        if isinstance(_pkg_data, dict):
+                            _pkg_name = _pkg_data.get("name", "")
+                            if _pkg_name:
+                                _intel = _pkg_intel_analyzer.analyze(_pkg_data, ecosystem="npm")
+                                if self._intelligence_mode == "connected":
+                                    from ._network import fetch_registry_intel
+                                    from .package_intel import enrich_registry_intel
+
+                                    _dl, _first = fetch_registry_intel(_pkg_name, ecosystem="npm")
+                                    _intel = enrich_registry_intel(_intel, _dl, _first)
+                                package_intel[_pkg_name] = _intel
+                    except (json.JSONDecodeError, OSError):
+                        continue
+            except Exception:
+                logger.debug("Package intel computation skipped", exc_info=True)
 
         fn_to_rule_ids: dict[int, list[str]] = {}
         for rule_id in selected_rules:
