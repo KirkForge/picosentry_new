@@ -1,0 +1,123 @@
+# PicoShogun (serve) Prometheus Alert Rules
+#
+# Install with:
+#   kubectl apply -f serve-alerts.yaml
+#
+# Requires Prometheus Operator with PrometheusRule CRD,
+# or add rules directly to your Prometheus config.
+#
+# Covers picoshogun_* metrics produced by the serve API
+# (picosentry/serve/services/metrics.py). The serve stack exposes:
+#   picoshogun_uptime_seconds, picoshogun_api_requests_total,
+#   picoshogun_api_request_duration_seconds, picoshogun_threat_score,
+#   picoshogun_outbox_poller_alive, picoshogun_dropped_audit_records,
+#   picoshogun_dropped_correlation_events, picoshogun_ws_dropped_messages.
+#
+# runbook_url targets the operations runbook in the PicoSentry manual
+# (docs/manual.md). Aggregation across uvicorn workers is the scraper's
+# job — scrape every worker (labeled instances) and let PromQL sum().
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: serve-alerts
+  namespace: picosentry
+  labels:
+    app: picoshogun
+    release: prometheus
+spec:
+  groups:
+    # ── SLO Alerts ────────────────────────────────────────────────
+    - name: picoshogun.slo
+      rules:
+        # Availability: 5xx error rate > 1% over 5m
+        - alert: PicoShogunHighErrorRate
+          expr: |
+            (
+              sum(rate(picoshogun_api_requests_total{status_class="5xx"}[5m]))
+              /
+              sum(rate(picoshogun_api_requests_total[5m]))
+            ) > 0.01
+          for: 5m
+          labels:
+            severity: critical
+            slo: availability
+          annotations:
+            summary: "PicoShogun API 5xx error rate exceeds 1%"
+            description: "The serve API is returning errors for more than 1% of requests. Check /health and recent deployments."
+            runbook_url: "https://github.com/KirkForge/PicoSentry/blob/main/docs/manual.md#serve-api-incident"
+
+        # Latency: p95 > 1s over 10m
+        - alert: PicoShogunHighLatency
+          expr: |
+            histogram_quantile(0.95,
+              sum(rate(picoshogun_api_request_duration_seconds_bucket[10m])) by (le)
+            ) > 1.0
+          for: 10m
+          labels:
+            severity: warning
+            slo: latency
+          annotations:
+            summary: "PicoShogun API p95 latency exceeds 1s"
+            description: "API p95 latency is above the 1s SLO. Check for slow DB queries, rate-limiter contention, or overload."
+            runbook_url: "https://github.com/KirkForge/PicoSentry/blob/main/docs/manual.md#serve-api-incident"
+
+    # ── Outbox / Event Pipeline Alerts ────────────────────────────
+    - name: picoshogun.pipeline
+      rules:
+        # Outbox poller died — audit/correlation events stop being delivered
+        # to other workers. A single-worker scrape sees this flip per-worker;
+        # sum() across instances is 0 only if EVERY poller is dead.
+        - alert: PicoShogunOutboxPollerDown
+          expr: sum(picoshogun_outbox_poller_alive) == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "PicoShogun outbox poller is dead on all workers"
+            description: "The outbox poller is not running on any worker. Cross-worker audit and correlation events are not being delivered. Check event_bus startup and DB connectivity."
+            runbook_url: "https://github.com/KirkForge/PicoSentry/blob/main/docs/manual.md#outbox-poller-incident"
+
+        - alert: PicoShogunDroppedAuditRecords
+          expr: picoshogun_dropped_audit_records > 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "PicoShogun is dropping audit records"
+            description: "The audit middleware dropped a record (DB write failure or queue overflow). Audit completeness is compromised — investigate DB health and the audit writer backlog."
+            runbook_url: "https://github.com/KirkForge/PicoSentry/blob/main/docs/manual.md#audit-drop-incident"
+
+        - alert: PicoShogunDroppedCorrelationEvents
+          expr: picoshogun_dropped_correlation_events > 0
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "PicoShogun is dropping correlation events"
+            description: "The correlation engine dropped an event (queue overflow). Correlation coverage is reduced — check engine throughput and the outbox poller."
+
+        - alert: PicoShogunWsDroppedMessages
+          expr: picoshogun_ws_dropped_messages > 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "PicoShogun is dropping WebSocket messages"
+            description: "The WebSocket manager dropped a message (client disconnect or send timeout). Persistent drops indicate frontend connectivity issues or a slow consumer."
+
+    # ── Security Alerts ───────────────────────────────────────────
+    - name: picoshogun.security
+      rules:
+        # Threat score sustained at the critical tier (>= 50, see
+        # _threat_level in _orchestrator_stats.py) for 15m indicates an
+        # active, unresolved threat posture, not a transient spike.
+        - alert: PicoShogunHighThreatScore
+          expr: picoshogun_threat_score >= 50
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "PicoShogun threat score is critical"
+            description: "The aggregate threat score has been at the critical tier for 15m. Review recent intelligence and pending alerts."
+            runbook_url: "https://github.com/KirkForge/PicoSentry/blob/main/docs/manual.md#threat-score-incident"
