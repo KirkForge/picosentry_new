@@ -18,8 +18,34 @@ if TYPE_CHECKING:
 
 
 _NETWORK_OPS = frozenset({"network_outbound"})
-_FILE_OPS = frozenset({"file_write_indicator", "file_write_bytes", "file_save", "file_export", "file_read"})
+# WO8.0.0-009: rich file operation types so L4 rules (create/delete/chmod/chown)
+# fire on event-based backends, not just the stdout text fallback. file_save/
+# file_export mean "saved/exported to <path>" (new file) → "create"; the generic
+# file_write_indicator/file_write_bytes mean "wrote to existing" → "write".
+_FILE_OPS = frozenset(
+    {
+        "file_write_indicator",
+        "file_write_bytes",
+        "file_save",
+        "file_export",
+        "file_read",
+        "file_create",
+        "file_delete",
+        "file_chmod",
+        "file_chown",
+    }
+)
 _SPAWN_OPS = frozenset({"process_spawn"})
+
+_FILE_OP_MAP = {
+    "file_read": "read",
+    "file_save": "create",
+    "file_export": "create",
+    "file_create": "create",
+    "file_delete": "delete",
+    "file_chmod": "chmod",
+    "file_chown": "chown",
+}
 
 
 def _is_not_loopback(address: str) -> bool:
@@ -61,7 +87,7 @@ def _extract_fs_from_events(events: list[SandboxEvent]) -> list[FileOperation]:
         if path in seen or path.startswith("/dev/"):
             continue
         seen.add(path)
-        op_type = "read" if ev.operation == "file_read" else "write"
+        op_type = _FILE_OP_MAP.get(ev.operation, "write")
         ops.append(FileOperation(path=path, operation=op_type))
     return ops
 
