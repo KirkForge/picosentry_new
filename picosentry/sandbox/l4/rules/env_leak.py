@@ -2,33 +2,6 @@ from picosentry.sandbox.l4.models import BehavioralProfile, SandboxFinding
 from picosentry.sandbox.models import Severity
 
 
-SENSITIVE_ENV_VARS = {
-    "AWS_ACCESS_KEY_ID",
-    "AWS_SECRET_ACCESS_KEY",
-    "AWS_SESSION_TOKEN",
-    "AZURE_CLIENT_SECRET",
-    "AZURE_CLIENT_ID",
-    "DATABASE_URL",
-    "DB_PASSWORD",
-    "GITHUB_TOKEN",
-    "GOOGLE_APPLICATION_CREDENTIALS",
-    "HEROKU_API_KEY",
-    "MAILGUN_API_KEY",
-    "MANDRILL_API_KEY",
-    "MONGO_URL",
-    "NETLIFY_AUTH_TOKEN",
-    "NPM_TOKEN",
-    "PGPASSWORD",
-    "POSTGRES_PASSWORD",
-    "REDIS_URL",
-    "SENDGRID_API_KEY",
-    "SLACK_TOKEN",
-    "STRIPE_SECRET_KEY",
-    "TWILIO_AUTH_TOKEN",
-    "VAULT_TOKEN",
-}
-
-
 def detect_env_leak(
     profile: BehavioralProfile,
 ) -> list[SandboxFinding]:
@@ -46,21 +19,6 @@ def detect_env_leak(
                     evidence={"operation": op.operation, "path": op.path},
                 )
             )
-
-    for call in profile.network_calls:
-        for var_name in SENSITIVE_ENV_VARS:
-            lower_val = var_name.lower()
-            lower_addr = call.address.lower()
-            if lower_val in lower_addr or var_name.lower() in lower_addr:
-                findings.append(
-                    SandboxFinding(
-                        rule_id="L4-ENV-002",
-                        severity=Severity.CRITICAL,
-                        message=f"Sensitive env var {var_name} referenced in network address: {call.address}",
-                        location=call.address,
-                        evidence={"env_var": var_name, "address": call.address, "port": call.port},
-                    )
-                )
 
     env_dump_commands = {"env", "printenv", "set", "export"}
     for spawn in profile.spawns:
