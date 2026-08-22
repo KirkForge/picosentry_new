@@ -313,7 +313,7 @@ class TestScanOutputEndpoint:
     def test_validate_pii_redaction(self, client_no_auth: TestClient) -> None:
         response = client_no_auth.post(
             "/v1/scan/output",
-            json={"output": "Contact John at john@example.com or 555-123-4567"},
+            json={"output": "Contact John at john@example.com or +1 (555) 123-4567"},
         )
         assert response.status_code == 200
         data = response.json()
