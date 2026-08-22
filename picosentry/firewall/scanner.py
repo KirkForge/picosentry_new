@@ -116,6 +116,24 @@ def _sanitize_pypi_name(name: str) -> str | None:
     return safe
 
 
+def _pep508_dep_name(dep: str) -> str:
+    """Extract the package name from a PEP 508 dependency specifier.
+
+    Uses ``packaging.requirements.Requirement`` which correctly handles
+    extras, markers, URL specs, and all operator forms (``~=``, ``===``,
+    ``@``). Falls back to the raw split-chain for unparseable specs so a
+    malformed dep never crashes the scan (WO8-003, same fix as advisory_check
+    WO7-013).
+    """
+    try:
+        from packaging.requirements import Requirement
+
+        return Requirement(dep).name
+    except Exception:
+        name = dep.split(">")[0].split("<")[0].split("=")[0].split("!")[0].split(";")[0].strip()
+        return name.split("[")[0].strip()
+
+
 def _pypi_to_npm_manifest(name: str, version: str, info: dict) -> dict | None:
     """Map PyPI ``info`` metadata into an npm ``package.json`` shape.
 
@@ -167,11 +185,11 @@ def _pypi_to_npm_manifest(name: str, version: str, info: dict) -> dict | None:
         deps: dict[str, str] = {}
         for req in requires_dist:
             if isinstance(req, str) and req:
-                dep_name = _sanitize_pypi_name(
-                    req.split(">")[0].split("<")[0].split("=")[0].split("!")[0].split(";")[0].strip()
-                )
+                dep_name = _pep508_dep_name(req)
                 if dep_name:
-                    deps[dep_name] = "*"
+                    safe = _sanitize_pypi_name(dep_name)
+                    if safe:
+                        deps[safe] = "*"
         if deps:
             manifest["dependencies"] = deps
 
