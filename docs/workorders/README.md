@@ -4,6 +4,44 @@
 
 Improvement series to push the production review score up. Work happens in isolated worktrees off `dev`; the orchestrator reviews and merges.
 
+## WO8.0.0 — Eighth series (OPEN — seeded by the 2026-08-22 two-explorer round)
+
+Priorities: P0 = security/correctness, do first. Every WO carries verified evidence (live repros or airtight file:line chains). Worktrees: `wo/8.0.0/<slug>` off `origin/dev`.
+
+### scan / sandbox / watch (explorer A)
+
+| ID | Title | Pri | Effort |
+|----|-------|-----|--------|
+| [WO8.0.0-001](WO8.0.0-001-grpc-scan-orphaned-running.md) | Sandbox: gRPC Scan RPC leaves orphaned "running" jobs on scan failure | P0 | S |
+| [WO8.0.0-002](WO8.0.0-002-scan-cache-enforce-caps.md) | Scan: ScanCache `_enforce_caps` O(n) on every put (same class as WO7-031) | P1 | S-M |
+| [WO8.0.0-003](WO8.0.0-003-firewall-pypi-pep508.md) | Firewall: pypi-to-npm dep parser has same PEP 508 bug as WO7-007 | P1 | S |
+| [WO8.0.0-004](WO8.0.0-004-advisory-pypi-reachable-dotted.md) | Scan: PyPI advisory reachability under-reports dotted package names | P1 | S |
+| [WO8.0.0-005](WO8.0.0-005-corpus-governance-fp-load.md) | Scan: CorpusGovernance false-positive reports not loaded from disk on restart | P1 | S |
+| [WO8.0.0-006](WO8.0.0-006-l4-env-leak-fp.md) | Sandbox: L4 env_leak L4-ENV-002 checks env var NAMES in addresses (FP) | P2 | S |
+| [WO8.0.0-007](WO8.0.0-007-output-guard-phone-fp.md) | Watch: output_guard phone PII pattern false-positives on numeric data | P1 | S |
+| [WO8.0.0-008](WO8.0.0-008-grpc-scan-inline-dos.md) | Sandbox: gRPC Scan runs inline on RPC thread (blocks Health, DoS) | P0 | M |
+| [WO8.0.0-009](WO8.0.0-009-l4-profiler-op-types.md) | Sandbox: L4 profiler only emits read/write ops — create/delete/chmod rules dead | P0 | M |
+| [WO8.0.0-010](WO8.0.0-010-engine-package-intel-perf.md) | Scan: engine computes package_intel over ALL node_modules on every scan | P1 | S |
+
+### serve / core / deploy / firewall (explorer B)
+
+| ID | Title | Pri | Effort |
+|----|-------|-----|--------|
+| [WO8.0.0-101](WO8.0.0-101-serve-helm-readonly-fs-crash.md) | Deploy: serve helm chart crashes on boot (readOnlyRootFilesystem + hardcoded log/backup dirs) | P0 | M |
+| [WO8.0.0-102](WO8.0.0-102-serve-helm-path-mismatch.md) | Deploy: serve helm chart path mismatch (Dockerfile user vs helm mount path) | P0 | S |
+| [WO8.0.0-103](WO8.0.0-103-scheduler-naive-datetime.md) | Serve: scheduler uses naive `datetime.now()` instead of UTC | P1 | S |
+| [WO8.0.0-104](WO8.0.0-104-correlation-on-list-chains.md) | Serve: `list_chains` and `chains_summary` O(N) kill_chain per artifact | P1 | M |
+| [WO8.0.0-105](WO8.0.0-105-scheduler-cross-worker-404.md) | Serve: `_assert_job_in_org` checks in-memory dict only → 404 for cross-worker jobs | P1 | S |
+| [WO8.0.0-106](WO8.0.0-106-intel-threat-score-decay-on2.md) | Serve: `_update_threat_score` O(N) decay on every intelligence ingest | P1 | S |
+| [WO8.0.0-107](WO8.0.0-107-dead-acknowledge-alert.md) | Serve: dead `EnhancedOrchestrator.acknowledge_alert` still sets `sent=1` | P2 | S |
+| [WO8.0.0-108](WO8.0.0-108-pending-alerts-sent-vs-acknowledged.md) | Serve: `pending_alerts` counts `sent=0` instead of `acknowledged=0` | P2 | S |
+| [WO8.0.0-109](WO8.0.0-109-log-manager-naive-datetime.md) | Serve: `log_manager.cleanup` uses naive `datetime.now()` | P2 | S |
+| [WO8.0.0-110](WO8.0.0-110-find-correlations-fstring-sql.md) | Serve: `find_correlations` f-string INTERVAL interpolation (fragile SQL pattern) | P2 | S |
+| [WO8.0.0-111](WO8.0.0-111-serve-monitoring-alerts-missing.md) | Deploy: monitoring alerts only cover picodome, not serve (no `picoshogun_*` rules) | P2 | M |
+| [WO8.0.0-112](WO8.0.0-112-alerts-duplicate-annotations.md) | Deploy: duplicate `annotations:` key in PicoDomeWebhookDeliveryFailures alert | P2 | S |
+
+Suggested batch shape: P0 cluster (001/008/009 scan+sandbox + 101/102 deploy) as 2 parallel worktrees; P1 wave (002-005/007/010 scan+sandbox+watch + 103-106 serve) as 2 parallel worktrees; P2 riders (006 + 107-112) as 1-2 worktrees.
+
 ## WO7.0.0 — Seventh series (DONE 2026-08-22 — 34/34 DONE, 6 subagent worktrees across 3 waves)
 
 Priorities: P0 = security/correctness, do first. Every WO carries verified evidence. Worktrees: `wo/7.0.0/<slug>` off `origin/dev`.
