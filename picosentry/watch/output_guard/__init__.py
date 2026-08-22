@@ -314,9 +314,16 @@ class OutputGuard:
             violations.append("out_pii_email")
             redacted = email_pattern.sub("[EMAIL-REDACTED]", redacted)
 
+        # Phone pattern (WO8-007): the previous 2nd alternative matched any
+        # 10-11 digit number, false-positiving on file sizes (1234567890),
+        # durations (123.456.7890), numeric IDs, and JSON output. Now require
+        # phone-like structure: a leading ``+`` country code, parentheses
+        # around the area code, or a ``tel:`` prefix — bare digits (even
+        # 3-3-4 with separators) no longer match without phone structure.
         phone_pattern = re.compile(
-            r"\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"
-            r"|\b\+?(?:\d{1,3}[-.\s]?)?\(?\d{1,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}\b"
+            r"\+\d{1,3}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}"
+            r"|\(\d{3}\)[-.\s]?\d{3}[-.\s]?\d{4}"
+            r"|tel:\+?[0-9][0-9.\s-]+"
         )
         if phone_pattern.search(redacted):
             violations.append("out_pii_phone")
