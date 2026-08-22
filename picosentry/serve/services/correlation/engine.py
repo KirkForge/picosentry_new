@@ -198,16 +198,35 @@ class CorrelationEngine:
             events = self._events.get(artifact_id)
             return list(events) if events else None
 
-    def critical_chains(self, threshold: float = 0.5, org_id: str | None = None) -> list[KillChainTimeline]:
-        with self._lock:
-            results = []
-            for artifact_id in list(self._events.keys()):
-                chain = self.kill_chain(artifact_id, org_id=org_id)
-                if chain and chain.chain_score >= threshold:
-                    results.append(chain)
+    def all_chains(self, org_id: str | None = None) -> list[KillChainTimeline]:
+        """Compute or fetch every artifact's chain in one locked pass.
 
+        Replaces the O(N) per-artifact ``kill_chain`` loop in list_chains,
+        chains_summary, and critical_chains: one lock acquisition, one walk
+        of the events dict, cache populated for all artifacts on the first
+        call so repeat calls are free.
+        """
+        org_key = _org_key(org_id)
+        with self._lock:
+            results: list[KillChainTimeline] = []
+            for artifact_id, events in self._events.items():
+                cache_key = (org_key, artifact_id)
+                cached = self._chains.get(cache_key)
+                if cached is not None:
+                    results.append(cached)
+                    continue
+                scoped = [e for e in events if e.org_id is None or e.org_id == org_key]
+                if not scoped:
+                    continue
+                timeline = self._compute_timeline(artifact_id, scoped)
+                timeline.org_id = org_key
+                self._chains[cache_key] = timeline
+                results.append(timeline)
             results.sort(key=lambda c: c.chain_score, reverse=True)
             return results
+
+    def critical_chains(self, threshold: float = 0.5, org_id: str | None = None) -> list[KillChainTimeline]:
+        return [c for c in self.all_chains(org_id=org_id) if c.chain_score >= threshold]
 
     def all_artifact_ids(self, org_id: str | None = None) -> list[str]:
         org_key = _org_key(org_id)
@@ -346,20 +365,16 @@ class CorrelationEngine:
         return _persist_chains_cache_impl(self)
 
     def chains_summary(self, org_id: str | None = None) -> dict[str, Any]:
-        with self._lock:
-            all_ids = self.all_artifact_ids(org_id=org_id)
+        all_chains = self.all_chains(org_id=org_id)
+        all_ids = self.all_artifact_ids(org_id=org_id)
 
-        all_chains: list[KillChainTimeline] = []
         layers_used: set[str] = set()
         total_events = 0
-        for artifact_id in all_ids:
-            chain = self.kill_chain(artifact_id, org_id=org_id)
-            if chain:
-                all_chains.append(chain)
-                for events in chain.phases.values():
-                    for e in events:
-                        layers_used.add(e.layer)
-                total_events += sum(len(e) for e in chain.phases.values())
+        for chain in all_chains:
+            for events in chain.phases.values():
+                for e in events:
+                    layers_used.add(e.layer)
+            total_events += sum(len(e) for e in chain.phases.values())
 
         critical_count = sum(1 for c in all_chains if c.chain_score >= 0.8)
         high_count = sum(1 for c in all_chains if 0.5 <= c.chain_score < 0.8)

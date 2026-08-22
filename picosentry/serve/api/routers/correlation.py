@@ -42,13 +42,7 @@ def list_chains(
     if threshold > 0:
         chains = correlation_engine.critical_chains(threshold=threshold, org_id=org["id"])
     else:
-        all_ids = correlation_engine.all_artifact_ids(org_id=org["id"])
-        chains = []
-        for artifact_id in all_ids:
-            chain = correlation_engine.kill_chain(artifact_id, org_id=org["id"])
-            if chain:
-                chains.append(chain)
-        chains.sort(key=lambda c: c.chain_score, reverse=True)
+        chains = correlation_engine.all_chains(org_id=org["id"])
 
     result = [c.to_dict() for c in chains[:limit]]
 
