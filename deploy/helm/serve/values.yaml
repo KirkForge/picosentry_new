@@ -28,9 +28,11 @@ database:
   # database.existingSecretKey; the env var PICOSHOGUN_DATABASE_URL is wired
   # from that secret key.
   url: ""
-  # SQLite path (only used when backend=sqlite). Mount a PVC at /home/picodome/.picosentry
-  # so scans/workspace survive pod restarts.
-  path: "/home/picodome/.picosentry/picoshogun.db"
+  # SQLite path (only used when backend=sqlite). Mount a PVC at /home/picosentry/.picosentry
+  # so scans/workspace survive pod restarts. The path must match the Docker
+  # image's USER home (/home/picosentry, set in the Dockerfile) so that ~ and
+  # $HOME resolve to the PVC mount — see plugin_manager.DEFAULT_USER_PLUGIN_DIR.
+  path: "/home/picosentry/.picosentry/picoshogun.db"
   existingSecret: ""
   existingSecretKey: "database-url"
 
@@ -74,7 +76,9 @@ persistence:
   storageClass: ""
   # PVC mount path inside the container. log_dir and backup_dir env vars
   # (PICOSHOGUN_LOG_DIR / PICOSHOGUN_BACKUP_DIR) are derived from this path.
-  mountPath: /home/picodome/.picosentry
+  # Must match the Docker image USER home (/home/picosentry) so ~ and $HOME
+  # resolve to the PVC — plugin_manager.DEFAULT_USER_PLUGIN_DIR uses expanduser().
+  mountPath: /home/picosentry/.picosentry
 
 cors:
   # Allowed origins for CORS headers (default: * for all — narrow in production)

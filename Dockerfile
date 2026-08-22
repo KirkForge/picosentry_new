@@ -40,8 +40,14 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends libseccomp2 tini && \
     rm -rf /var/lib/apt/lists/*
 
-RUN groupadd -r picosentry && \
-    useradd -r -g picosentry -d /home/picosentry -s /sbin/nologin picosentry && \
+# Create the picosentry user with a fixed UID/GID of 1000 so it matches the
+# serve helm chart's securityContext.runAsUser/runAsGroup/fsGroup (1000). The
+# -r flag would auto-assign a system UID < 1000, which the helm chart then
+# overrides via runAsUser — leaving the process running as UID 1000 that does
+# not own /home/picosentry. Pinning both sides to 1000 keeps the process,
+# the home dir, and the PVC mount owned by the same identity.
+RUN groupadd -r -g 1000 picosentry && \
+    useradd -r -u 1000 -g picosentry -d /home/picosentry -s /sbin/nologin picosentry && \
     mkdir -p /home/picosentry/.local/share/picosentry && \
     chown -R picosentry:picosentry /home/picosentry
 
