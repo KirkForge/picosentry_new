@@ -144,7 +144,7 @@ class EnhancedOrchestrator:  # rationale: async execution engine coordinating Pi
             tuple(params_intel),
         )
 
-        alerts_where = "WHERE sent = 0"
+        alerts_where = "WHERE acknowledged = 0"
         params_alerts: list[Any] = []
         if org_id is not None:
             alerts_where += " AND org_id = ?"
@@ -600,18 +600,6 @@ class EnhancedOrchestrator:  # rationale: async execution engine coordinating Pi
 
         rows = db.execute(query, tuple(params))
         return [dict(row) for row in rows]
-
-    def acknowledge_alert(self, alert_id: int) -> bool:
-        row = db.execute_one("SELECT id FROM alerts WHERE id = ?", (alert_id,))
-        if row is None:
-            return False
-        db.execute_insert(
-            """
-            UPDATE alerts SET sent = 1 WHERE id = ?
-        """,
-            (alert_id,),
-        )
-        return True
 
     def get_metrics(
         self,

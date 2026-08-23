@@ -186,5 +186,4 @@ spec:
             severity: warning
           annotations:
             summary: "PicoDome webhook deliveries are failing"
-          annotations:
             description: "External webhook notifications are failing. Check endpoint availability."
