@@ -37,7 +37,7 @@ async def dashboard_summary(
             (org["id"],),
         )
         pending_alerts = db.execute_one(
-            "SELECT COUNT(*) as c FROM alerts WHERE acknowledged = 0 AND org_id = ?", (org["id"],)
+            "SELECT COUNT(*) as c FROM alerts WHERE acknowledged IS NOT TRUE AND org_id = ?", (org["id"],)
         )
         return status, health, recent_projects, recent_intel, recent_alerts, pending_alerts
 

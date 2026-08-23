@@ -144,7 +144,7 @@ class EnhancedOrchestrator:  # rationale: async execution engine coordinating Pi
             tuple(params_intel),
         )
 
-        alerts_where = "WHERE acknowledged = 0"
+        alerts_where = "WHERE acknowledged IS NOT TRUE"
         params_alerts: list[Any] = []
         if org_id is not None:
             alerts_where += " AND org_id = ?"
