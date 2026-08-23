@@ -2687,7 +2687,7 @@ Update the threat model after any change to:
 
 > **These benchmarks are measured against a synthetic regression corpus, not real-world malware.** They demonstrate rule coverage and regression prevention, not production detection rates. Real-world held-out benchmarking is an ongoing validation track.
 
-*Generated 2026-08-17 (WO4.0.0-008 detection-quality round). Corpus: 5,673 test fixtures (3,431 positive / 2,235 negative / 7 tricky) across 7 ecosystems. See [Validation limitations](#validation-limitations) for scope boundaries.*
+*Generated 2026-08-17 (WO4.0.0-008 detection-quality round). Corpus: 5,674 test fixtures (3,431 positive / 2,236 negative / 7 tricky) across 7 ecosystems. See [Validation limitations](#validation-limitations) for scope boundaries.*
 
 The mechanically re-rendered per-rule table lives in the generated file
 [`docs/BENCHMARKS.md`](BENCHMARKS.md) — it is spliced from
@@ -2700,10 +2700,12 @@ and CI-enforced against drift. This chapter is the narrative model card.
 |---|---|---|
 | **L2** | Static scan rules (`RULE_INFO`) | 53 |
 | **L2** | Campaign benchmarks (`L2-CAMP-*`) | 4 |
-| **L4** | Sandbox behavioral detectors | 15 |
-| **Total** | | **72** |
+| **L4** | Sandbox behavioral rules (15 detector categories, 65 individual rule IDs) | 65 |
+| **Total** | | **122** |
 
 The 4 `L2-CAMP-*` entries are campaign-specific IoC matchers validated against known attack packages, not general-purpose static rules. They are included in the per-rule table for transparency but are not counted as detection rules above.
+
+The 15 L4 detector categories (registered in `create_default_engine()`) emit 65 individual rule IDs (e.g. `L4-NET-001` through `L4-NET-005`). See `picosentry/sandbox/docs/rules/L4-RULES.md` for the full per-rule reference.
 
 Note: three static rules (`L2-INTEL-001`, `L2-NSCOL-001`, `L2-VCONF-001`; `RULE_INFO`
 grew 50 → 53) have no positive fixtures in the corpus and therefore do not appear in
@@ -2723,9 +2725,9 @@ PicoSentry operates in three distinct modes. Benchmarks in this card cover only 
 
 | Metric | Value |
 |---|---|
-| **Test fixtures** | 5,673 (5,666 validated + 7 tricky) |
+| **Test fixtures** | 5,674 (5,667 validated + 7 tricky) |
 | **Positive fixtures** | 3,431 |
-| **Negative fixtures** | 2,235 |
+| **Negative fixtures** | 2,236 |
 | **Tricky fixtures** | 7 |
 | **L2 rules benchmarked** | 54 (50 static + 4 campaign) |
 | **Mean precision** | 100.00% |
@@ -2789,7 +2791,7 @@ deliberately documented rather than papered over.
 
 ### False positives
 
-Zero false positives across 2,235 synthetic negative fixtures. This demonstrates no overtriggering on clean package patterns in the regression corpus, but does not constitute a real-world false-positive rate guarantee.
+Zero false positives across 2,236 synthetic negative fixtures. This demonstrates no overtriggering on clean package patterns in the regression corpus, but does not constitute a real-world false-positive rate guarantee.
 
 ### 2026-07-29 expansion
 
@@ -3941,7 +3943,7 @@ Before opening a PR for any extension:
 
 - **Detection benchmarks are published.** See
   [Chapter 18, Benchmarks and model card](#18-detection-benchmarks-and-model-card).
-  The corpus is **5,673 fixtures** (3,431 positive / 2,235 negative / 7 tricky)
+  The corpus is **5,674 fixtures** (3,431 positive / 2,236 negative / 7 tricky)
   across **7 ecosystems**; the 2026-08-17 benchmark run measured **100.00% mean
   precision / 90.87% mean recall** over 54 rule IDs (50 static at the time + 4
   campaign matchers); `RULE_INFO` has since grown to 53 static rules

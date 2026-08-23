@@ -4,6 +4,38 @@
 
 Improvement series to push the production review score up. Work happens in isolated worktrees off `dev`; the orchestrator reviews and merges.
 
+## WO9.0.0 — Ninth series (OPEN — seeded by the 2026-08-23 two-auditor round + doc audit)
+
+Priorities: P0 = security/correctness, do first. Every WO carries verified evidence (live repros or airtight file:line chains). Worktrees: `wo/9.0.0/<slug>` off `origin/dev`.
+
+### scan / sandbox / watch (auditor A)
+
+| ID | Title | Pri | Effort | Final status |
+|----|-------|-----|--------|---------------|
+| [WO9.0.0-001](WO9.0.0-001-admission-scanner-field-mismatch.md) | Sandbox: admission scanner reads wrong response field names (admission control is a no-op) | P0 | S | OPEN |
+| [WO9.0.0-002](WO9.0.0-002-l4-privesc-003-dead-chmod-check.md) | Sandbox: L4-PRIVESC-003 setuid chmod detection is dead (checks op.path not command) | P0 | S | OPEN |
+| [WO9.0.0-003](WO9.0.0-003-l4-container-severity-escalation-string-cmp.md) | Sandbox: L4-CONTAINER-001 severity escalation broken (string comparison not severity order) | P1 | S | OPEN |
+| [WO9.0.0-004](WO9.0.0-004-l4-exfil-003-bytes-sent-dead.md) | Sandbox: L4-EXFIL-003 large outbound transfer dead (no backend populates bytes_sent) | P1 | S | OPEN |
+| [WO9.0.0-005](WO9.0.0-005-l4-profiler-file-ops-missing-file-write.md) | Sandbox: L4 profiler _FILE_OPS missing file_write/file_open (WO8-009 incomplete) | P1 | M | OPEN |
+| [WO9.0.0-006](WO9.0.0-006-l4-fs-chmod-dead-code.md) | Sandbox: L4-FS chmod rule is dead code (`pass` — produces no finding) | P2 | S | OPEN |
+| [WO9.0.0-007](WO9.0.0-007-l4-persist-duplicate-ssh-keys.md) | Sandbox: L4-PERSIST-001 duplicate finding for /root/.ssh/authorized_keys | P2 | S | OPEN |
+| [WO9.0.0-008](WO9.0.0-008-l4-profiler-garbage-spawn-exe.md) | Sandbox: L4 profiler extracts garbage executable from seccomp_trace events | P2 | S | OPEN |
+| [WO9.0.0-009](WO9.0.0-009-health-fail-open-check-raises.md) | Sandbox: HTTP /health defaults to "healthy" when check_health() raises (fail-open) | P2 | S | OPEN |
+
+### serve / core / deploy / firewall (auditor B)
+
+| ID | Title | Pri | Effort | Final status |
+|----|-------|-----|--------|---------------|
+| [WO9.0.0-101](WO9.0.0-101-webhook-ssrf-empty-pinned-ips.md) | Serve: webhook SSRF bypass via empty pinned_ips (no empty-check in _load_webhooks) | P0 | S | OPEN |
+| [WO9.0.0-102](WO9.0.0-102-acknowledge-alert-postgres-boolean.md) | Serve: acknowledge_alert `acknowledged = 1` breaks on Postgres (boolean = integer) | P0 | S | OPEN |
+| [WO9.0.0-103](WO9.0.0-103-release-cosign-double-v-tag.md) | Deploy: release.yml cosign signs `:vv<TAG>` (double-v — nonexistent image) | P0 | S | OPEN |
+| [WO9.0.0-104](WO9.0.0-104-ci-push-no-lint-typecheck.md) | CI: push tier has no lint/typecheck (direct-to-dev skips ruff/mypy) | P1 | S | OPEN |
+| [WO9.0.0-105](WO9.0.0-105-dockerfile-server-healthcheck-imports-only.md) | Deploy: Dockerfile server HEALTHCHECK checks imports not HTTP (crashed uvicorn reports healthy) | P1 | S | OPEN |
+| [WO9.0.0-106](WO9.0.0-106-plugin-manager-iterdir-unguarded.md) | Serve: PluginManager iterdir() unguarded — OSError crashes serve boot | P1 | S | OPEN |
+| [WO9.0.0-107](WO9.0.0-107-db-backup-naive-datetime-collision.md) | Serve: db.backup() naive datetime.now() + same-second collision (WO8-103/109 missed this) | P2 | S | OPEN |
+
+Suggested batch shape: P0 cluster (001/002 sandbox + 101/102/103 serve/deploy) as 2 parallel worktrees; P1 wave (003-005 sandbox + 104-106 serve) as 2 worktrees; P2 riders (006-009 + 107) as 1 worktree.
+
 ## WO8.0.0 — Eighth series (DONE 2026-08-23 — 22/22 DONE, 6 subagent worktrees across 3 waves)
 
 Priorities: P0 = security/correctness, do first. Every WO carries verified evidence (live repros or airtight file:line chains). Worktrees: `wo/8.0.0/<slug>` off `origin/dev`.

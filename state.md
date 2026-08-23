@@ -2,22 +2,27 @@
 
 *Tracked. Updated at session close. Head section = current state; below = session history.*
 
-# ═══ CURRENT STATE (2026-08-22, WO8.0.0 SEEDED — 22 WOs open; WO7.0.0 complete; v2.2.0 shipped; main = 8c3a68e2, dev = 5cfd0312) ═══
+# ═══ CURRENT STATE (2026-08-23, v2.2.0 shipped; WO7+WO8 complete; main = a0b9d9d3, dev = e79f0469) ═══
 
-**WO8.0.0 series seeded** (22 WOs: P0×5, P1×10, P2×7) from a two-explorer round (scan+sandbox+watch / serve+core+deploy+firewall). All findings carry verified evidence (live repros or airtight file:line chains). Headline P0s: gRPC Scan orphaned running jobs on failure (001), gRPC Scan inline DoS (008), L4 profiler op-type blind (009), serve helm chart readOnlyRootFilesystem crash (101), serve helm chart path mismatch (102). Suggested batch shape in README.
+**Version**: 2.2.0 (pyproject.toml source of truth). Released 2026-08-20, live on PyPI.
 
-**WO7.0.0 series fully CLOSED** (34/34 DONE). Three waves of 2 subagents each (P0: 6 WOs, P1: 22 WOs, P2: 6 WOs), 6 worktrees total off `origin/dev`. Zero merge conflicts (disjoint file ownership verified pre-merge each wave). Orchestrator landed 3 riders (org_id threading, health probe lightweight, test fixes for health 503 on CI). Central gate green each wave: P0 5678, P1 5806, P2 **5854 passed / 0 failed / 37 skipped**. ruff/format/mypy clean (747 files, 417 source files). **main = `8c3a68e2`** (WO7 push CI green at that SHA); **dev = `5cfd0312`** (WO8 seeding commit, docs-only — safe to ff main when convenient).
+**Branch state**: `main` = `a0b9d9d3` (WO8.0.0-108 rider, code+tests); `dev` = `e79f0469` (1 docs-only commit ahead — WO8 completion status in README). Both green CI. Safe to ff `main` to `dev` (docs-only delta).
 
-**Migrations landed in WO7**: 24 (correlation_chains UNIQUE(org_id, artifact_id)), 25 (alerts `acknowledged` column separate from `sent`).
+**Completed series**:
+- **WO7.0.0**: 34/34 DONE (security/correctness wave — OSV crates.io drop, encoded-dot SSRF, gRPC audit tenancy, correlation_chains cross-tenant clobber, health probe lightweight, helm chart fix). Migrations 24 (correlation_chains UNIQUE(org_id, artifact_id)) + 25 (alerts `acknowledged` column). main ff'd to `8c3a68e2`, push CI green.
+- **WO8.0.0**: 22/22 DONE (3 waves, 6 subagent worktrees — gRPC Scan orphaned jobs/inline DoS, L4 profiler op-types, serve helm readOnlyRootFilesystem crash/path mismatch, scheduler naive datetime, correlation O(N), cross-worker 404, threat score O(N²) decay, dead acknowledge_alert, pending_alerts sent-vs-acknowledged, serve monitoring alerts, duplicate annotations). Gate: 5966 passed / 37 skipped (1 pre-existing xdist determinism flake, passes in isolation). ruff/format/mypy clean.
 
-**Standing context**: green-before-ff rule in AGENTS.md §1.5; WO5 remainders: docker push (tooling-gated, runbook in WO5-014), WO5-029 <1s/MB target (12% landed, full fused pass pending), WO5-031 e2e isolation (core + helm chart landed, 2-worker e2e pending). Next free series: WO9.0.0.
+**WO5 remainders** (CLOSED series, 3 honest PARTIALs):
+- **WO5-014**: Docker Hub push blocked (no container tooling/creds on host). Runbook in WO file. All claims made honest ("push pending"). Unblocks when docker+buildx installed.
+- **WO5-029**: Watch fused-pass <1s/MB target — 12% landed (3.91→3.44 s/MB CPU), full fused pass still pending.
+- **WO5-031**: Multi-worker e2e isolation — core landed (outbox, leader lease, rate-limit sync, WS queues, sqlite busy_timeout, helm chart), 2-real-worker e2e tests pending.
 
-**The queue (next session — jump-in order)**:
-1. **WO8.0.0 P0 cluster** (5 WOs): sandbox 001/008/009 + deploy 101/102 — security/correctness, do first
-2. **WO8.0.0 P1 wave** (10 WOs): scan+sandbox+watch 002-005/007/010 + serve 103-106
-3. **WO8.0.0 P2 riders** (7 WOs): 006 + 107-112
-4. **WO5 remainders**: docker push (when tooling exists), WO5-029 fused-pass target, WO5-031 e2e isolation
-5. **Release v2.3.0** when ready (WO7.0.0 is a significant security/correctness wave — warrants a release; WO8 P0s should land first)
+**Pending / next**:
+- **Release v2.3.0** when ready — WO7+WO8 are two significant security/correctness waves (57 WOs total), warrant a release. Flow: gates green on dev → ff main → bump version (17-file lockstep) → reproducible build → publish.
+- **Docker push** when tooling exists (WO5-014 runbook).
+- **Next explorer round**: WO9.0.0 series (next free series) — no WOs seeded yet. Areas worth probing: WO5-029 fused-pass target, WO5-031 2-worker e2e, watch slow-tier non-typosquat rule cost (155s), any regressions from WO8.
+
+**Blocked**: Docker Hub push (tooling + credentials) — WO5.0.0-014.
 
 # ═══ SESSION HISTORY ═══
 

@@ -22,7 +22,7 @@
 
 ## TL;DR
 
-- **Fixtures:** 5,666 validated (3,431 positive / 2,235 negative) + 7 tricky
+- **Fixtures:** 5,667 validated (3,431 positive / 2,236 negative) + 7 tricky
 - **Rules covered by fixtures:** 54 (50 L2 rule_ids in `RULE_INFO` + 4 L2-CAMP rule_ids
   from the IoC corpus — `L2-CAMP-SHAI-HULUD`, `L2-CAMP-NODE-IPC-COMPROMISE`,
   `L2-CAMP-TRAPDOOR`, `L2-CAMP-AXIOS-POISONING`). Every L2 rule in
@@ -44,7 +44,7 @@
 The headline number (**100.00% precision, 90.87% mean recall**) is reproducible from a
 single command and is enforced by CI. But it is a synthetic regression corpus, not a
 statistically meaningful real-world measurement. Specifically:
-1. **5,666 fixtures is a corpus, not a benchmark.** A scanner that over-matches on common
+1. **5,667 fixtures is a corpus, not a benchmark.** A scanner that over-matches on common
    patterns could pass today and fail tomorrow against real-world packages. The 7 tricky
    fixtures in `_tricky/` exist specifically to document the *known* cases where a
    detector's regex is too coarse, but they don't prove the detector is precise on the
@@ -333,7 +333,7 @@ picosentry scan --validate
 Expected output (truncated):
 
 ```
-fixtures: 5666 (3431 pos / 2235 neg) | mean precision: 100.00% | mean recall: 90.87% | fixture failures: 37 | passes: True
+fixtures: 5667 (3431 pos / 2236 neg) | mean precision: 100.00% | mean recall: 90.87% | fixture failures: 37 | passes: True
 rule_id                    tp   fp   fn     prec   recall
 ---------------------------------------------------------
 L2-ADV-001                  2    0    1 100.00%  66.67%
