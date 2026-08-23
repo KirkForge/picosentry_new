@@ -4,43 +4,43 @@
 
 Improvement series to push the production review score up. Work happens in isolated worktrees off `dev`; the orchestrator reviews and merges.
 
-## WO8.0.0 — Eighth series (OPEN — seeded by the 2026-08-22 two-explorer round)
+## WO8.0.0 — Eighth series (DONE 2026-08-23 — 22/22 DONE, 6 subagent worktrees across 3 waves)
 
 Priorities: P0 = security/correctness, do first. Every WO carries verified evidence (live repros or airtight file:line chains). Worktrees: `wo/8.0.0/<slug>` off `origin/dev`.
 
 ### scan / sandbox / watch (explorer A)
 
-| ID | Title | Pri | Effort |
-|----|-------|-----|--------|
-| [WO8.0.0-001](WO8.0.0-001-grpc-scan-orphaned-running.md) | Sandbox: gRPC Scan RPC leaves orphaned "running" jobs on scan failure | P0 | S |
-| [WO8.0.0-002](WO8.0.0-002-scan-cache-enforce-caps.md) | Scan: ScanCache `_enforce_caps` O(n) on every put (same class as WO7-031) | P1 | S-M |
-| [WO8.0.0-003](WO8.0.0-003-firewall-pypi-pep508.md) | Firewall: pypi-to-npm dep parser has same PEP 508 bug as WO7-007 | P1 | S |
-| [WO8.0.0-004](WO8.0.0-004-advisory-pypi-reachable-dotted.md) | Scan: PyPI advisory reachability under-reports dotted package names | P1 | S |
-| [WO8.0.0-005](WO8.0.0-005-corpus-governance-fp-load.md) | Scan: CorpusGovernance false-positive reports not loaded from disk on restart | P1 | S |
-| [WO8.0.0-006](WO8.0.0-006-l4-env-leak-fp.md) | Sandbox: L4 env_leak L4-ENV-002 checks env var NAMES in addresses (FP) | P2 | S |
-| [WO8.0.0-007](WO8.0.0-007-output-guard-phone-fp.md) | Watch: output_guard phone PII pattern false-positives on numeric data | P1 | S |
-| [WO8.0.0-008](WO8.0.0-008-grpc-scan-inline-dos.md) | Sandbox: gRPC Scan runs inline on RPC thread (blocks Health, DoS) | P0 | M |
-| [WO8.0.0-009](WO8.0.0-009-l4-profiler-op-types.md) | Sandbox: L4 profiler only emits read/write ops — create/delete/chmod rules dead | P0 | M |
-| [WO8.0.0-010](WO8.0.0-010-engine-package-intel-perf.md) | Scan: engine computes package_intel over ALL node_modules on every scan | P1 | S |
+| ID | Title | Pri | Effort | Final status |
+|----|-------|-----|--------|---------------|
+| [WO8.0.0-001](WO8.0.0-001-grpc-scan-orphaned-running.md) | Sandbox: gRPC Scan RPC leaves orphaned "running" jobs on scan failure | P0 | S | DONE |
+| [WO8.0.0-002](WO8.0.0-002-scan-cache-enforce-caps.md) | Scan: ScanCache `_enforce_caps` O(n) on every put (same class as WO7-031) | P1 | S-M | DONE |
+| [WO8.0.0-003](WO8.0.0-003-firewall-pypi-pep508.md) | Firewall: pypi-to-npm dep parser has same PEP 508 bug as WO7-007 | P1 | S | DONE |
+| [WO8.0.0-004](WO8.0.0-004-advisory-pypi-reachable-dotted.md) | Scan: PyPI advisory reachability under-reports dotted package names | P1 | S | DONE |
+| [WO8.0.0-005](WO8.0.0-005-corpus-governance-fp-load.md) | Scan: CorpusGovernance false-positive reports not loaded from disk on restart | P1 | S | DONE |
+| [WO8.0.0-006](WO8.0.0-006-l4-env-leak-fp.md) | Sandbox: L4 env_leak L4-ENV-002 checks env var NAMES in addresses (FP) | P2 | S | DONE |
+| [WO8.0.0-007](WO8.0.0-007-output-guard-phone-fp.md) | Watch: output_guard phone PII pattern false-positives on numeric data | P1 | S | DONE |
+| [WO8.0.0-008](WO8.0.0-008-grpc-scan-inline-dos.md) | Sandbox: gRPC Scan runs inline on RPC thread (blocks Health, DoS) | P0 | M | DONE |
+| [WO8.0.0-009](WO8.0.0-009-l4-profiler-op-types.md) | Sandbox: L4 profiler only emits read/write ops — create/delete/chmod rules dead | P0 | M | DONE |
+| [WO8.0.0-010](WO8.0.0-010-engine-package-intel-perf.md) | Scan: engine computes package_intel over ALL node_modules on every scan | P1 | S | DONE |
 
 ### serve / core / deploy / firewall (explorer B)
 
-| ID | Title | Pri | Effort |
-|----|-------|-----|--------|
-| [WO8.0.0-101](WO8.0.0-101-serve-helm-readonly-fs-crash.md) | Deploy: serve helm chart crashes on boot (readOnlyRootFilesystem + hardcoded log/backup dirs) | P0 | M |
-| [WO8.0.0-102](WO8.0.0-102-serve-helm-path-mismatch.md) | Deploy: serve helm chart path mismatch (Dockerfile user vs helm mount path) | P0 | S |
-| [WO8.0.0-103](WO8.0.0-103-scheduler-naive-datetime.md) | Serve: scheduler uses naive `datetime.now()` instead of UTC | P1 | S |
-| [WO8.0.0-104](WO8.0.0-104-correlation-on-list-chains.md) | Serve: `list_chains` and `chains_summary` O(N) kill_chain per artifact | P1 | M |
-| [WO8.0.0-105](WO8.0.0-105-scheduler-cross-worker-404.md) | Serve: `_assert_job_in_org` checks in-memory dict only → 404 for cross-worker jobs | P1 | S |
-| [WO8.0.0-106](WO8.0.0-106-intel-threat-score-decay-on2.md) | Serve: `_update_threat_score` O(N) decay on every intelligence ingest | P1 | S |
-| [WO8.0.0-107](WO8.0.0-107-dead-acknowledge-alert.md) | Serve: dead `EnhancedOrchestrator.acknowledge_alert` still sets `sent=1` | P2 | S |
-| [WO8.0.0-108](WO8.0.0-108-pending-alerts-sent-vs-acknowledged.md) | Serve: `pending_alerts` counts `sent=0` instead of `acknowledged=0` | P2 | S |
-| [WO8.0.0-109](WO8.0.0-109-log-manager-naive-datetime.md) | Serve: `log_manager.cleanup` uses naive `datetime.now()` | P2 | S |
-| [WO8.0.0-110](WO8.0.0-110-find-correlations-fstring-sql.md) | Serve: `find_correlations` f-string INTERVAL interpolation (fragile SQL pattern) | P2 | S |
-| [WO8.0.0-111](WO8.0.0-111-serve-monitoring-alerts-missing.md) | Deploy: monitoring alerts only cover picodome, not serve (no `picoshogun_*` rules) | P2 | M |
-| [WO8.0.0-112](WO8.0.0-112-alerts-duplicate-annotations.md) | Deploy: duplicate `annotations:` key in PicoDomeWebhookDeliveryFailures alert | P2 | S |
+| ID | Title | Pri | Effort | Final status |
+|----|-------|-----|--------|---------------|
+| [WO8.0.0-101](WO8.0.0-101-serve-helm-readonly-fs-crash.md) | Deploy: serve helm chart crashes on boot (readOnlyRootFilesystem + hardcoded log/backup dirs) | P0 | M | DONE |
+| [WO8.0.0-102](WO8.0.0-102-serve-helm-path-mismatch.md) | Deploy: serve helm chart path mismatch (Dockerfile user vs helm mount path) | P0 | S | DONE |
+| [WO8.0.0-103](WO8.0.0-103-scheduler-naive-datetime.md) | Serve: scheduler uses naive `datetime.now()` instead of UTC | P1 | S | DONE |
+| [WO8.0.0-104](WO8.0.0-104-correlation-on-list-chains.md) | Serve: `list_chains` and `chains_summary` O(N) kill_chain per artifact | P1 | M | DONE |
+| [WO8.0.0-105](WO8.0.0-105-scheduler-cross-worker-404.md) | Serve: `_assert_job_in_org` checks in-memory dict only → 404 for cross-worker jobs | P1 | S | DONE |
+| [WO8.0.0-106](WO8.0.0-106-intel-threat-score-decay-on2.md) | Serve: `_update_threat_score` O(N) decay on every intelligence ingest | P1 | S | DONE |
+| [WO8.0.0-107](WO8.0.0-107-dead-acknowledge-alert.md) | Serve: dead `EnhancedOrchestrator.acknowledge_alert` still sets `sent=1` | P2 | S | DONE |
+| [WO8.0.0-108](WO8.0.0-108-pending-alerts-sent-vs-acknowledged.md) | Serve: `pending_alerts` counts `sent=0` instead of `acknowledged=0` | P2 | S | DONE |
+| [WO8.0.0-109](WO8.0.0-109-log-manager-naive-datetime.md) | Serve: `log_manager.cleanup` uses naive `datetime.now()` | P2 | S | DONE |
+| [WO8.0.0-110](WO8.0.0-110-find-correlations-fstring-sql.md) | Serve: `find_correlations` f-string INTERVAL interpolation (fragile SQL pattern) | P2 | S | DONE |
+| [WO8.0.0-111](WO8.0.0-111-serve-monitoring-alerts-missing.md) | Deploy: monitoring alerts only cover picodome, not serve (no `picoshogun_*` rules) | P2 | M | DONE |
+| [WO8.0.0-112](WO8.0.0-112-alerts-duplicate-annotations.md) | Deploy: duplicate `annotations:` key in PicoDomeWebhookDeliveryFailures alert | P2 | S | DONE |
 
-Suggested batch shape: P0 cluster (001/008/009 scan+sandbox + 101/102 deploy) as 2 parallel worktrees; P1 wave (002-005/007/010 scan+sandbox+watch + 103-106 serve) as 2 parallel worktrees; P2 riders (006 + 107-112) as 1-2 worktrees.
+**Batch executed 2026-08-23**: 3 waves (P0: 2 subagents × 3+2 WOs, P1: 2 subagents × 6+4 WOs, P2: 2 subagents × 1+6 WOs). 6 worktrees total off `origin/dev`. Zero merge conflicts. Orchestrator landed 1 rider (Postgres boolean `IS NOT TRUE` fix for `acknowledged` column). Central gate green each wave: P0 5887, P1 5946, P2 5963 passed / 0 real failed. ruff/format/mypy clean (763 files, 417 source files). main ff'd to dev `a0b9d9d3`, push CI green (5-Python matrix, PG 15-18, reproducible-build, landlock-real-exec, docker amd64+arm64).
 
 ## WO7.0.0 — Seventh series (DONE 2026-08-22 — 34/34 DONE, 6 subagent worktrees across 3 waves)
 
@@ -104,7 +104,7 @@ Priorities: P0 = security/correctness, do first. Every WO carries verified evide
 | [WO6.0.0-011](WO6.0.0-011-events-history.md) | Serve: /events/history 500 (uuid vs int) + system-event visibility | P0 | S | DONE |
 | [WO6.0.0-012](WO6.0.0-012-org-tier-clamp.md) | Serve: org create honors client tier (viewer self-serves enterprise) | P0 | S | DONE |
 | [WO6.0.0-013](WO6.0.0-013-serve-tx-discipline.md) | Serve: login lock-order inversion (15s stalls) + immediate-default convoys | P0 | M | DONE |
-| [WO6.0.0-014](WO6.0.0-014-cluster-lifecycle.md) | Sandbox: cluster token lifecycle (grace=0 inverted, self-refreshing trust, dead EITHER-auth) | P0 | M | DONE (TOCTOU rider deferred) |
+| [WO6.0.0-014](WO6.0.0-014-cluster-lifecycle.md) | Sandbox: cluster token lifecycle (grace=0 inverted, self-refreshing trust, dead EITHER-auth) | P0 | M | DONE | DONE (TOCTOU rider deferred) |
 | [WO6.0.0-015](WO6.0.0-015-helm-default-install.md) | Deploy: helm default install prints --help and exits | P0 | S | DONE |
 | [WO6.0.0-016](WO6.0.0-016-decode-budget-starvation.md) | Watch: decode-budget starvation advisory-only | P1 | M | DONE |
 | [WO6.0.0-017](WO6.0.0-017-firewall-cache-scope.md) | Firewall: VerdictCache thread safety + %40 scope misclassification | P1 | S-M | DONE |
@@ -126,40 +126,40 @@ Priorities: P0 = security/correctness, do first. Each WO names its verified evid
 
 | ID | Title | Pri | Effort |
 |----|-------|-----|--------|
-| [WO5.0.0-001](WO5.0.0-001-sandbox-tenant-production.md) | Sandbox: tenant isolation dead in production (loader unwired, X-Tenant override, audit scope, NULL tenant) | P0 | M |
-| [WO5.0.0-002](WO5.0.0-002-sandbox-input-hardening.md) | Sandbox: untrusted-input hardening (NaN timeout, retention traversal, names, header charset) | P0 | M |
-| [WO5.0.0-003](WO5.0.0-003-policy-signature-fail-closed.md) | Sandbox: policy signature verification fails open without a key | P0 | S |
+| [WO5.0.0-001](WO5.0.0-001-sandbox-tenant-production.md) | Sandbox: tenant isolation dead in production (loader unwired, X-Tenant override, audit scope, NULL tenant) | P0 | M | DONE |
+| [WO5.0.0-002](WO5.0.0-002-sandbox-input-hardening.md) | Sandbox: untrusted-input hardening (NaN timeout, retention traversal, names, header charset) | P0 | M | DONE |
+| [WO5.0.0-003](WO5.0.0-003-policy-signature-fail-closed.md) | Sandbox: policy signature verification fails open without a key | P0 | S | DONE |
 | [WO5.0.0-004](WO5.0.0-004-cluster-auth-reconciliation.md) | Sandbox: cluster gossip 401-dead on auth-configured daemons | P0 | S-M |
-| [WO5.0.0-005](WO5.0.0-005-serve-killchain-tenancy.md) | Serve: kill-chain escalation reads org from the payload (cross-tenant leak) | P0 | S |
-| [WO5.0.0-006](WO5.0.0-006-serve-audit-retention-auto.md) | Serve: scheduler cleanup bypasses severity-aware audit retention | P0 | S |
-| [WO5.0.0-007](WO5.0.0-007-serve-metrics-exposition.md) | Serve: /metrics exposition invalid (duplicate samples + label injection) | P0 | M |
-| [WO5.0.0-008](WO5.0.0-008-serve-alerting-truthfulness.md) | Serve: alerting truthfulness (sent=1 on failed delivery, webhook name clobber, auto-analysis no-op) | P0 | M |
-| [WO5.0.0-009](WO5.0.0-009-scan-advisory-correctness.md) | Scan: advisory pipeline correctness (default no-op, maven keying, multi-package records) | P0 | M |
-| [WO5.0.0-010](WO5.0.0-010-scan-cache-parity.md) | Scan: cache input-hash parity with rule read-surface + `--no-cache` | P0 | M |
-| [WO5.0.0-011](WO5.0.0-011-watch-decode-completeness.md) | Watch: prompt decode completeness (layered encodings, budget dial, entities) | P0 | M |
+| [WO5.0.0-005](WO5.0.0-005-serve-killchain-tenancy.md) | Serve: kill-chain escalation reads org from the payload (cross-tenant leak) | P0 | S | DONE |
+| [WO5.0.0-006](WO5.0.0-006-serve-audit-retention-auto.md) | Serve: scheduler cleanup bypasses severity-aware audit retention | P0 | S | DONE |
+| [WO5.0.0-007](WO5.0.0-007-serve-metrics-exposition.md) | Serve: /metrics exposition invalid (duplicate samples + label injection) | P0 | M | DONE |
+| [WO5.0.0-008](WO5.0.0-008-serve-alerting-truthfulness.md) | Serve: alerting truthfulness (sent=1 on failed delivery, webhook name clobber, auto-analysis no-op) | P0 | M | DONE |
+| [WO5.0.0-009](WO5.0.0-009-scan-advisory-correctness.md) | Scan: advisory pipeline correctness (default no-op, maven keying, multi-package records) | P0 | M | DONE |
+| [WO5.0.0-010](WO5.0.0-010-scan-cache-parity.md) | Scan: cache input-hash parity with rule read-surface + `--no-cache` | P0 | M | DONE |
+| [WO5.0.0-011](WO5.0.0-011-watch-decode-completeness.md) | Watch: prompt decode completeness (layered encodings, budget dial, entities) | P0 | M | DONE |
 | [WO5.0.0-012](WO5.0.0-012-firewall-path-auth.md) | Firewall: path classification bypassed by query strings + auth crash | P0 | S-M |
-| [WO5.0.0-013](WO5.0.0-013-output-guard-truthfulness.md) | Watch: output truthfulness (unscanned choices/tool_calls, encoded exfil) | P0 | M |
-| [WO5.0.0-014](WO5.0.0-014-docker-truth.md) | Docker truth end-to-end (hub image, helm tag convention, existence gate) | P0 | M |
-| [WO5.0.0-015](WO5.0.0-015-scan-selection-honesty.md) | Scan: selection & worker honesty (dropped rules, rules=[], intelligence mode) | P1 | S-M |
-| [WO5.0.0-016](WO5.0.0-016-scan-silent-skip.md) | Scan: silent-skip accounting (SBOM unknown dead-end, error paths, validation skips) | P1 | M |
-| [WO5.0.0-017](WO5.0.0-017-sandbox-job-store.md) | Sandbox: job-store correctness (prune deletes all, orphans, redis honesty) | P1 | M |
-| [WO5.0.0-018](WO5.0.0-018-sandbox-audit-transport-hygiene.md) | Sandbox: audit & transport hygiene sweep (query recency, gRPC, dedup, state) | P1 | M |
-| [WO5.0.0-019](WO5.0.0-019-landlock-verdict-parity.md) | Sandbox: landlock verdict parity + degraded honesty | P1 | M |
-| [WO5.0.0-020](WO5.0.0-020-serve-loop-remainder.md) | Serve: event-loop hygiene remainder (ready/history/projects/redis) | P1 | M |
-| [WO5.0.0-021](WO5.0.0-021-serve-scheduler-correctness.md) | Serve: scheduler correctness (double-fire, SMTP persistence, report scope, name squat) | P1 | M |
-| [WO5.0.0-022](WO5.0.0-022-serve-org-scoping.md) | Serve: org-scoping remainder (threat score, anomaly filters, rule mutation surface) | P1 | M |
-| [WO5.0.0-023](WO5.0.0-023-gateway-hardening.md) | Watch: gateway production hardening (loop, body, auth, streaming ceiling) | P1 | M |
-| [WO5.0.0-024](WO5.0.0-024-watch-metrics-telemetry-sweep.md) | Watch: metrics/telemetry honesty sweep (family render, edge hardening) | P1 | M |
-| [WO5.0.0-025](WO5.0.0-025-ci-doctor-gate-truthfulness.md) | CI/doctor gate truthfulness (exit codes, gates that can't fail) | P1 | M |
-| [WO5.0.0-026](WO5.0.0-026-ci-path-filter-report.md) | CI: path-filter completion + REPORT.json gating + nightly cancellation | P2 | S |
-| [WO5.0.0-027](WO5.0.0-027-docs-tooling-sync.md) | Docs & tooling sync sweep (small truthfulness riders) | P2 | S |
-| [WO5.0.0-028](WO5.0.0-028-scan-typo-dp-calibration.md) | Scan: typosquat DP acceleration + short-name calibration (folds WO4-014) | P1 | M |
+| [WO5.0.0-013](WO5.0.0-013-output-guard-truthfulness.md) | Watch: output truthfulness (unscanned choices/tool_calls, encoded exfil) | P0 | M | DONE |
+| [WO5.0.0-014](WO5.0.0-014-docker-truth.md) | Docker truth end-to-end (hub image, helm tag convention, existence gate) | P0 | M | DONE |
+| [WO5.0.0-015](WO5.0.0-015-scan-selection-honesty.md) | Scan: selection & worker honesty (dropped rules, rules=[], intelligence mode) | P1 | S-M | DONE |
+| [WO5.0.0-016](WO5.0.0-016-scan-silent-skip.md) | Scan: silent-skip accounting (SBOM unknown dead-end, error paths, validation skips) | P1 | M | DONE |
+| [WO5.0.0-017](WO5.0.0-017-sandbox-job-store.md) | Sandbox: job-store correctness (prune deletes all, orphans, redis honesty) | P1 | M | DONE |
+| [WO5.0.0-018](WO5.0.0-018-sandbox-audit-transport-hygiene.md) | Sandbox: audit & transport hygiene sweep (query recency, gRPC, dedup, state) | P1 | M | DONE |
+| [WO5.0.0-019](WO5.0.0-019-landlock-verdict-parity.md) | Sandbox: landlock verdict parity + degraded honesty | P1 | M | DONE |
+| [WO5.0.0-020](WO5.0.0-020-serve-loop-remainder.md) | Serve: event-loop hygiene remainder (ready/history/projects/redis) | P1 | M | DONE |
+| [WO5.0.0-021](WO5.0.0-021-serve-scheduler-correctness.md) | Serve: scheduler correctness (double-fire, SMTP persistence, report scope, name squat) | P1 | M | DONE |
+| [WO5.0.0-022](WO5.0.0-022-serve-org-scoping.md) | Serve: org-scoping remainder (threat score, anomaly filters, rule mutation surface) | P1 | M | DONE |
+| [WO5.0.0-023](WO5.0.0-023-gateway-hardening.md) | Watch: gateway production hardening (loop, body, auth, streaming ceiling) | P1 | M | DONE |
+| [WO5.0.0-024](WO5.0.0-024-watch-metrics-telemetry-sweep.md) | Watch: metrics/telemetry honesty sweep (family render, edge hardening) | P1 | M | DONE |
+| [WO5.0.0-025](WO5.0.0-025-ci-doctor-gate-truthfulness.md) | CI/doctor gate truthfulness (exit codes, gates that can't fail) | P1 | M | DONE |
+| [WO5.0.0-026](WO5.0.0-026-ci-path-filter-report.md) | CI: path-filter completion + REPORT.json gating + nightly cancellation | P2 | S | DONE |
+| [WO5.0.0-027](WO5.0.0-027-docs-tooling-sync.md) | Docs & tooling sync sweep (small truthfulness riders) | P2 | S | DONE |
+| [WO5.0.0-028](WO5.0.0-028-scan-typo-dp-calibration.md) | Scan: typosquat DP acceleration + short-name calibration (folds WO4-014) | P1 | M | DONE |
 | [WO5.0.0-029](WO5.0.0-029-watch-fused-perf.md) | Watch: fused-pass <1s/MB + perf-ceiling test robustness (folds WO4-016) | P2 | M-L |
-| [WO5.0.0-030](WO5.0.0-030-cluster-rotation-announcements.md) | Sandbox: cluster token rotation announcements + trust ceilings (folds WO4-019) | P2 | M |
+| [WO5.0.0-030](WO5.0.0-030-cluster-rotation-announcements.md) | Sandbox: cluster token rotation announcements + trust ceilings (folds WO4-019) | P2 | M | DONE |
 | [WO5.0.0-031](WO5.0.0-031-serve-multi-worker.md) | Serve: multi-worker / horizontal readiness (folds WO4-020) | P2 | L |
 | [WO5.0.0-032](WO5.0.0-032-serve-tenant-product.md) | Serve: tenant product completeness (folds WO4-021) | P2 | L |
-| [WO5.0.0-033](WO5.0.0-033-serve-webhook-wildcard.md) | Serve: webhook wildcard event matching broken (new, P0-wave flag) | P1 | S |
-| [WO5.0.0-034](WO5.0.0-034-scan-osv-cache-roundtrip.md) | Scan: OSV disk-cache round-trip decodes to empty (new, P0-wave flag) | P1 | S |
+| [WO5.0.0-033](WO5.0.0-033-serve-webhook-wildcard.md) | Serve: webhook wildcard event matching broken (new, P0-wave flag) | P1 | S | DONE |
+| [WO5.0.0-034](WO5.0.0-034-scan-osv-cache-roundtrip.md) | Scan: OSV disk-cache round-trip decodes to empty (new, P0-wave flag) | P1 | S | DONE |
 | [WO5.0.0-035](WO5.0.0-035-test-infra-py314-races.md) | Test-infra: py3.14 forkserver spawn race + slow-tier drift (new, P0-wave flag) | P2 | S-M |
 
 Suggested batch shape: P0 security cluster as 3 parallel subagent worktrees (sandbox 001-004 / serve 005-008 / scan+watch+firewall 009-013), 014 solo before the next release; P1 next (incl. new flags 033-034); P2 riders last.
